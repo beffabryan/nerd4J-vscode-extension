@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { generateEquals, generateToStringCode } from './codeGenerator';
 
-
 let options = [
 	{ label: 'age', picked: true },
 	{ label: 'name', picked: true },
@@ -10,12 +9,9 @@ let options = [
 	{ label: 'iban', picked: true }
 ];
 
+const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
 
 export function activate(context: vscode.ExtensionContext) {
-
-	const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
-
-
 	const hashCode = [
 		{ label: 'create hashCode()', picked: true },
 	]
@@ -33,7 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
 				printers,
 				{ placeHolder: 'Select a layout' }
 			);
-
 
 			if (selectionType) {
 				const toStringCode = generateToStringCode(selectedAttributes, selectionType);
@@ -87,7 +82,6 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(toString);
 
-
 	const disposable1 = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
 		const selectedOption = await vscode.window.showQuickPick(
 			[
@@ -101,10 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.commands.executeCommand(selectedOption.command);
 		}
 	});
-
 	context.subscriptions.push(disposable1);
-
-
 }
 function getAttributes(): void {
 

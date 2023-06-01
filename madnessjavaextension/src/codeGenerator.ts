@@ -6,14 +6,17 @@ function checkIfMethodAlreadyExists(methodName: string) {
 
 	// check if to string exitst
 	return editorText?.includes(methodName);
+}
 
+function showErrorMessage(message: string) {
+    vscode.window.showErrorMessage(message);
 }
 
 export function generateToStringCode(selectedAttributes: string[], selectedType: string): string {
 
 	//check if toString already exists
-	if (checkIfMethodAlreadyExists('String toString()')) {
-		vscode.window.showErrorMessage("Il metodo toString() è già implementato");
+	if (checkIfMethodAlreadyExists('public String toString()')) {
+		showErrorMessage("Il metodo toString() è già implementato");
 		return "";
 	}
 
@@ -26,13 +29,12 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 	let code = `\n@Override\npublic String toString() {\n\treturn ToString.of(this)`;
 
 	for (const attribute of selectedAttributes) {
-		const attributeName = attribute.match(/\w+/); // Ottieni il nome della variabile
+		const attributeName = attribute.match(/\w+/); // get variable name
 		if (attributeName)
 			code += `\n\t\t.print("${attributeName[0]}", ${attributeName[0]})`;
 	}
 
 	code += `\n\t\t.${selectedType}();\n}`;
-
 	return code;
 }
 
@@ -41,50 +43,36 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 
 	//check if there are selected attributes
 	if (selectedAttributes.length === 0) {
-		vscode.window.showErrorMessage("Nessun attributo selezionato");
+		showErrorMessage("Nessun attributo selezionato");
 		return "";
 	}
 
 	let code = '';
 
 	//check if equals already exists
-	if (checkIfMethodAlreadyExists('boolean equals(Object other)')) {
-		vscode.window.showErrorMessage("Il metodo equals() è già implementato");
-	} else {
+	if (checkIfMethodAlreadyExists('boolean equals(Object other)'))
+		showErrorMessage("Il metodo equals() è già implementato");
+	else {
 
-		code += `\n
-	@Override
-	public boolean equals(Object other) {
-		return Equals.ifSameClass(
-			this, other,`;
-
-
-		let i = 0;
-		for (const attribute of selectedAttributes) {
-			const attributeName = attribute.match(/\w+/); // Ottieni il nome della variabile
+		code += `\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,`;
+        for (let i = 0; i < selectedAttributes.length; i++) {
+			const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
 
 			if (attributeName) {
-				code += `
-			o -> o.${attributeName[0]}`;
+				code += `\n\t\to -> o.${attributeName[0]}`;
 
 				//check index
 				if (i != selectedAttributes.length - 1)
 					code += ', ';
 			}
-			i++;
 		}
 
-		code += `
-		);
-	}`;
+		code += `\n\t);\n}`;
 	}
 
-	if (createHashCode) {
-
-		//create hashCode method
+	if (createHashCode)
 		code += generateHashCode(selectedAttributes);
 
-	}
 	return code;
 }
 
@@ -92,24 +80,20 @@ export function generateHashCode(selectedAttributes: string[]): string {
 
 	//check if there are selected attributes
 	if (selectedAttributes.length === 0) {
-		vscode.window.showErrorMessage("Nessun attributo selezionato");
+		showErrorMessage("Nessun attributo selezionato");
 		return "";
 	}
 
 	//check if hashCode already exists
 	if (checkIfMethodAlreadyExists('int hashCode()')) {
-		vscode.window.showErrorMessage("Il metodo hashCode() è già implementato");
+		showErrorMessage("Il metodo hashCode() è già implementato");
 		return "";
 	}
 
-	let code = `\n
-	@Override
-	public int hashCode() {
-		return HashCode.of(`;
+	let code = `\n\n@Override\npublic int hashCode() {\n\treturn HashCode.of(`;
 
-	let i = 0;
-	for (const attribute of selectedAttributes) {
-		const attributeName = attribute.match(/\w+/); // Ottieni il nome della variabile
+    for (let i = 0; i < selectedAttributes.length; i++) {
+		const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
 
 		if (attributeName) {
 			code += `${attributeName[0]}`;
@@ -118,12 +102,9 @@ export function generateHashCode(selectedAttributes: string[]): string {
 			if (i != selectedAttributes.length - 1)
 				code += ', ';
 		}
-		i++;
 	}
 
-	code += `);
-	}`;
-
+	code += `);\n}`;
 	return code;
 
 }

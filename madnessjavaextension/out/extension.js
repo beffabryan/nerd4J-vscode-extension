@@ -10,8 +10,8 @@ let options = [
     { label: 'id', picked: true },
     { label: 'iban', picked: true }
 ];
+const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
 function activate(context) {
-    const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
     const hashCode = [
         { label: 'create hashCode()', picked: true },
     ];
