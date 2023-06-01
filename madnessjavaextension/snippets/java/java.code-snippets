@@ -5,7 +5,7 @@
             "ToString.Printer"
         ],
         "body": [
-            "new ToString.Printer() {",
+            "ToString.Printer() {",
             "\n\t@Override",
             "\tpublic String apply(ToString.Configuration configuration) {",
             "\n\t\tString separator = \"$1\";",
