@@ -1,0 +1,11 @@
+{
+    "SBT dependency": {
+        "prefix": [
+            "nerd4j"
+        ],
+        "body": [
+            "libraryDependencies += \"org.nerd4j\" %% \"nerd4j-utils\" % \"2.0.0\""
+        ],
+        "description": "Nerd4J-utils dependency for SBT",
+    }
+}

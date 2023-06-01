@@ -1,0 +1,61 @@
+{
+    "Apache Maven dependency": {
+        "prefix": [
+            "nerd4j"
+        ],
+        "body": [
+            "<dependency>",
+            "\t<groupId>org.nerd4j</groupId>",
+            "\t<artifactId>nerd4j-utils</artifactId>",
+            "\t<version>2.0.0</version>",
+            "</dependency>",
+        ],
+        "description": "Nerd4J-utils dependency for Apache Maven",
+        "scope": "text.xml"
+    },
+    "Apache Buildr dependency": {
+        "prefix": [
+            "nerd4j"
+        ],
+        "body": [
+            "'org.nerd4j:nerd4j-utils:jar:2.0.0'"
+        ],
+        "description": "Nerd4J-utils dependency for Apache Buildr",
+        "scope": "text.xml"
+    },
+    "Apache Ant dependency": {
+        "prefix": [
+            "nerd4j"
+        ],
+        "body": [
+            "<dependency org=\"org.nerd4j\" name=\"nerd4j-utils\" rev=\"2.0.0\">",
+            "\t<artifact name=\"nerd4j-utils\" type=\"jar\" />",
+            "</dependency>"
+        ],
+        "description": "Nerd4J-utils dependency for Apache Ant",
+        "scope": "text.xml"
+    },
+    "Groovy Grape dependency": {
+        "prefix": [
+            "nerd4j"
+        ],
+        "body": [
+            "@Grapes(",
+            "@Grab(group='org.nerd4j', module='nerd4j-utils', version='2.0.0')",
+            ")"
+        ],
+        "description": "Nerd4J-utils dependency for Groovy Grape",
+        "scope": "text.xml"
+    },
+    "Grails dependency": {
+        "prefix": [
+            "nerd4j"
+        ],
+        "body": [
+            "compile 'org.nerd4j:nerd4j-utils:2.0.0'"
+        ],
+        "description": "Nerd4J-utils dependency for Grails",
+        "scope": "text.xml"
+    }
+    
+}

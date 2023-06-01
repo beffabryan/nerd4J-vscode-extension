@@ -35,5 +35,15 @@
             "}"
         ],
         "description": "Example of an implementation of a customizable layout using ToString.Printer",
-    }
+    },
+    "import": {
+        "prefix": [
+            "nerd4j.utils.lang",
+            "import nerd4j.utils.lang"
+        ],
+        "body": [
+            "import org.nerd4j.utils.lang.*;"
+        ],
+        "description": "Import of the org.nerd4j.utils.lang library",
+    },
 }

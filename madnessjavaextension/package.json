@@ -21,7 +21,19 @@
     "snippets": [
       {
         "language": "java",
-        "path": "./snippets/java.code-snippets"
+        "path": "./snippets/java/java.code-snippets"
+      },
+      {
+        "language": "xml",
+        "path": "./snippets/dependencies/xml-dependencies.code-snippets"
+      },
+      {
+        "language": "clojure",
+        "path": "./snippets/dependencies/clj-dependencies.code-snippets"
+      },
+      {
+        "language": "plaintext",
+        "path": "./snippets/dependencies/sbt-dependencies.code-snippets"
       }
     ],
     "languages": [
