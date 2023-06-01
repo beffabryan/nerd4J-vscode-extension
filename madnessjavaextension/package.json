@@ -47,7 +47,8 @@
     "commands": [
       {
         "command": "madnessjavaextension.showContextMenu",
-        "title": "Generate ..."
+        "title": "Generate ...",
+        "when": "resourceLangId == 'java'"
       }
     ],
     "menus": {
@@ -80,8 +81,5 @@
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
     "typescript": "^5.0.4"
-  },
-  "dependencies": {
-    "javaparser": "^2.0.2"
   }
 }

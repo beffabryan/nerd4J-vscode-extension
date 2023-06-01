@@ -36,7 +36,7 @@
         ],
         "description": "Example of an implementation of a customizable layout using ToString.Printer",
     },
-    "import": {
+    "lang.*": {
         "prefix": [
             "nerd4j.utils.lang",
             "import nerd4j.utils.lang"
@@ -46,4 +46,34 @@
         ],
         "description": "Import of the org.nerd4j.utils.lang library",
     },
+    "tuple.*": {
+        "prefix": [
+            "nerd4j.utils.tuple",
+            "import nerd4j.utils.tuple"
+        ],
+        "body": [
+            "import org.nerd4j.utils.tuple.*;"
+        ],
+        "description": "Import of the org.nerd4j.utils.tuple library",
+    },
+    "math.*": {
+        "prefix": [
+            "nerd4j.utils.math",
+            "import nerd4j.utils.math"
+        ],
+        "body": [
+            "import org.nerd4j.utils.math.*;"
+        ],
+        "description": "Import of the org.nerd4j.utils.math library",
+    },
+    "cache.*": {
+        "prefix": [
+            "nerd4j.utils.cache",
+            "import nerd4j.utils.cache"
+        ],
+        "body": [
+            "import org.nerd4j.utils.cache.*;"
+        ],
+        "description": "Import of the org.nerd4j.utils.cache library",
+    }
 }
