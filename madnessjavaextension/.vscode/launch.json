@@ -6,6 +6,20 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"type": "java",
+			"name": "Car",
+			"request": "launch",
+			"mainClass": "Car",
+			"projectName": "madnessjavaextension_fd5d6206"
+		},
+		{
+			"type": "java",
+			"name": "FileAnalyser",
+			"request": "launch",
+			"mainClass": "FileAnalyser",
+			"projectName": "madnessjavaextension_fd5d6206"
+		},
+		{
 			"name": "Run Extension",
 			"type": "extensionHost",
 			"request": "launch",
