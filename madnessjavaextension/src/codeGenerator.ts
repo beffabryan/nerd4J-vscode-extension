@@ -9,7 +9,7 @@ function checkIfMethodAlreadyExists(methodName: string) {
 }
 
 function showErrorMessage(message: string) {
-    vscode.window.showErrorMessage(message);
+	vscode.window.showErrorMessage(message);
 }
 
 export function generateToStringCode(selectedAttributes: string[], selectedType: string): string {
@@ -55,7 +55,7 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 	else {
 
 		code += `\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,`;
-        for (let i = 0; i < selectedAttributes.length; i++) {
+		for (let i = 0; i < selectedAttributes.length; i++) {
 			const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
 
 			if (attributeName) {
@@ -92,7 +92,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 
 	let code = `\n\n@Override\npublic int hashCode() {\n\treturn HashCode.of(`;
 
-    for (let i = 0; i < selectedAttributes.length; i++) {
+	for (let i = 0; i < selectedAttributes.length; i++) {
 		const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
 
 		if (attributeName) {
@@ -107,4 +107,21 @@ export function generateHashCode(selectedAttributes: string[]): string {
 	code += `);\n}`;
 	return code;
 
+}
+
+export function generateWithFields(selectedAttributes: string[]): string {
+
+	let code = '';
+
+	for (let i = 0; i < selectedAttributes.length; i++) {
+		const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
+
+		if (attributeName) {
+			//set first letter to upper case
+			const methodName = 'with' + attributeName[0].charAt(0).toUpperCase() + attributeName[0].slice(1);
+			code += `\npublic Object ${methodName}(String value) {\n\tthis.${attributeName[0]} = value;\n\treturn this;\n}\n`;
+		}
+	}
+
+	return code;
 }

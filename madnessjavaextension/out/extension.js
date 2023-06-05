@@ -39,6 +39,26 @@ function activate(context) {
         }
     });
     context.subscriptions.push(toString);
+    //generate with field command
+    const withField = vscode.commands.registerCommand('madnessjavaextension.generateWithField', async () => {
+        await getAttributes();
+        const selectedOptions = await vscode.window.showQuickPick(options, {
+            canPickMany: true,
+            placeHolder: 'Select attributes'
+        });
+        if (selectedOptions) {
+            const selectedAttributes = selectedOptions.map(option => option.label);
+            const withFieldCode = (0, codeGenerator_1.generateWithFields)(selectedAttributes);
+            const editor = vscode.window.activeTextEditor;
+            if (editor) {
+                const selection = editor.selection;
+                editor.edit(editBuilder => {
+                    editBuilder.insert(selection.end, withFieldCode);
+                });
+            }
+        }
+    });
+    context.subscriptions.push(toString);
     //generate equals and hashCode command
     const equals = vscode.commands.registerCommand('madnessjavaextension.generateEquals', async () => {
         await getAttributes();
@@ -55,22 +75,23 @@ function activate(context) {
             if (hashCodeOption) {
                 const selectedAttributes = selectedOptions.map(option => option.label);
                 let createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
-                const toStringCode = (0, codeGenerator_1.generateEquals)(selectedAttributes, createHashCode);
+                const equalsCode = (0, codeGenerator_1.generateEquals)(selectedAttributes, createHashCode);
                 const editor = vscode.window.activeTextEditor;
                 if (editor) {
                     const selection = editor.selection;
                     editor.edit(editBuilder => {
-                        editBuilder.insert(selection.end, toStringCode);
+                        editBuilder.insert(selection.end, equalsCode);
                     });
                 }
             }
         }
     });
-    context.subscriptions.push(toString);
+    context.subscriptions.push(equals);
     const disposable1 = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
         const selectedOption = await vscode.window.showQuickPick([
             { label: 'toString() method', command: 'madnessjavaextension.generateToString' },
-            { label: 'equals() and hashCode', command: 'madnessjavaextension.generateEquals' }
+            { label: 'equals() and hashCode', command: 'madnessjavaextension.generateEquals' },
+            { label: 'withField()', command: 'madnessjavaextension.generateWithField' }
         ], { placeHolder: 'Select an option' });
         if (selectedOption) {
             vscode.commands.executeCommand(selectedOption.command);

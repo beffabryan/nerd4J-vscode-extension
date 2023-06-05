@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateHashCode = exports.generateEquals = exports.generateToStringCode = void 0;
+exports.generateWithFields = exports.generateHashCode = exports.generateEquals = exports.generateToStringCode = void 0;
 const vscode = require("vscode");
 function checkIfMethodAlreadyExists(methodName) {
     const editor = vscode.window.activeTextEditor;
@@ -86,4 +86,17 @@ function generateHashCode(selectedAttributes) {
     return code;
 }
 exports.generateHashCode = generateHashCode;
+function generateWithFields(selectedAttributes) {
+    let code = '';
+    for (let i = 0; i < selectedAttributes.length; i++) {
+        const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
+        if (attributeName) {
+            //set first letter to upper case
+            const methodName = 'with' + attributeName[0].charAt(0).toUpperCase() + attributeName[0].slice(1);
+            code += `\npublic Object ${methodName}(String value) {\n\tthis.${attributeName[0]} = value;\n\treturn this;\n}\n`;
+        }
+    }
+    return code;
+}
+exports.generateWithFields = generateWithFields;
 //# sourceMappingURL=codeGenerator.js.map

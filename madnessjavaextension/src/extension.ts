@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import { generateEquals, generateToStringCode } from './codeGenerator';
+import { generateEquals, generateToStringCode, generateWithFields } from './codeGenerator';
 import { exec } from 'child_process';
-import { resolve } from 'path';
 
 let options = [
 	{ label: 'age', picked: true },
@@ -50,6 +49,32 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(toString);
 
+	//generate with field command
+	const withField = vscode.commands.registerCommand('madnessjavaextension.generateWithField', async () => {
+
+		await getAttributes();
+		const selectedOptions = await vscode.window.showQuickPick(options, {
+			canPickMany: true,
+			placeHolder: 'Select attributes'
+		});
+
+		if (selectedOptions) {
+			const selectedAttributes = selectedOptions.map(option => option.label);
+
+			const withFieldCode = generateWithFields(selectedAttributes);
+
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				const selection = editor.selection;
+				editor.edit(editBuilder => {
+					editBuilder.insert(selection.end, withFieldCode);
+				});
+			}
+
+		}
+	});
+	context.subscriptions.push(toString);
+
 
 	//generate equals and hashCode command
 	const equals = vscode.commands.registerCommand('madnessjavaextension.generateEquals', async () => {
@@ -73,25 +98,26 @@ export function activate(context: vscode.ExtensionContext) {
 				const selectedAttributes = selectedOptions.map(option => option.label);
 
 				let createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
-				const toStringCode = generateEquals(selectedAttributes, createHashCode);
+				const equalsCode = generateEquals(selectedAttributes, createHashCode);
 
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 					const selection = editor.selection;
 					editor.edit(editBuilder => {
-						editBuilder.insert(selection.end, toStringCode);
+						editBuilder.insert(selection.end, equalsCode);
 					});
 				}
 			}
 		}
 	});
-	context.subscriptions.push(toString);
+	context.subscriptions.push(equals);
 
 	const disposable1 = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
 		const selectedOption = await vscode.window.showQuickPick(
 			[
 				{ label: 'toString() method', command: 'madnessjavaextension.generateToString' },
-				{ label: 'equals() and hashCode', command: 'madnessjavaextension.generateEquals' }
+				{ label: 'equals() and hashCode', command: 'madnessjavaextension.generateEquals' },
+				{ label: 'withField()', command: 'madnessjavaextension.generateWithField' }
 			],
 			{ placeHolder: 'Select an option' }
 		);
