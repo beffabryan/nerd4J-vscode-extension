@@ -8,12 +8,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FileAnalyser {
+public class FileAnalyzer {
 
     private Class<?> loadedClass;
 
-    public FileAnalyser(String filePath) throws Exception {
-
+    public FileAnalyzer(String filePath) throws Exception {
         init(filePath);
     }
 
@@ -92,13 +91,13 @@ public class FileAnalyser {
 
     public static void main(String[] args) {
 
-        String filePath = "..\\..\\SportCar.java";
+        String filePath = args[0];
 
         try {
-            FileAnalyser fileAnalyser = new FileAnalyser(filePath);
+            FileAnalyzer fileAnalyzer = new FileAnalyzer(filePath);
 
             // get all visible fields
-            List<String> visibleFields = fileAnalyser.getVisibleFields();
+            List<String> visibleFields = fileAnalyzer.getVisibleFields();
             for (String field : visibleFields)
                 System.out.println(field);
 

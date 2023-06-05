@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = void 0;
 const vscode = require("vscode");
 const codeGenerator_1 = require("./codeGenerator");
+const child_process_1 = require("child_process");
 let options = [
     { label: 'age', picked: true },
     { label: 'name', picked: true },
@@ -15,7 +16,9 @@ function activate(context) {
     const hashCode = [
         { label: 'create hashCode()', picked: true },
     ];
+    //generate toString command
     const toString = vscode.commands.registerCommand('madnessjavaextension.generateToString', async () => {
+        await getAttributes();
         const selectedOptions = await vscode.window.showQuickPick(options, {
             canPickMany: true,
             placeHolder: 'Select attributes'
@@ -38,7 +41,7 @@ function activate(context) {
     context.subscriptions.push(toString);
     //generate equals and hashCode command
     const equals = vscode.commands.registerCommand('madnessjavaextension.generateEquals', async () => {
-        getAttributes();
+        await getAttributes();
         const selectedOptions = await vscode.window.showQuickPick(options, {
             canPickMany: true,
             placeHolder: 'Select attributes'
@@ -76,13 +79,35 @@ function activate(context) {
     context.subscriptions.push(disposable1);
 }
 exports.activate = activate;
+// get attributes using java reflection
 function getAttributes() {
-    options = [
-        { label: 'id', picked: true },
-        { label: 'name', picked: true },
-        { label: 'surname', picked: true },
-        { label: 'age', picked: true },
-        { label: 'city', picked: true }
-    ];
+    return new Promise((resolve, reject) => {
+        // get current folder path
+        const currentPath = "C:\\Users\\Bryan\\Desktop\\nerd4J-vscode-extension\\madnessjavaextension\\src";
+        const arg = "C:\\Users\\Bryan\\Desktop\\Car.java";
+        vscode.window.showInformationMessage(`Path: ${currentPath}`);
+        (0, child_process_1.exec)(`java -cp ${currentPath} FileAnalyzer ${arg}`, (error, stdout, stderr) => {
+            if (error) {
+                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
+                return;
+            }
+            const output = stdout.trim();
+            console.log(`Output 1: ${output}`);
+            // save output in a list
+            const outputList = output.split("\n");
+            //remove all options
+            options = [];
+            for (let i = 0; i < outputList.length; i++) {
+                let option = outputList[i].trim();
+                options.push({ label: option, picked: true });
+            }
+            console.log(`List: ${outputList}`);
+            resolve(options);
+        });
+    });
 }
 //# sourceMappingURL=extension.js.map
