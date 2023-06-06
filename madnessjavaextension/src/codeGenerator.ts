@@ -76,6 +76,8 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 	return code;
 }
 
+
+// generate hashCode method
 export function generateHashCode(selectedAttributes: string[]): string {
 
 	//check if there are selected attributes
@@ -90,7 +92,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 		return "";
 	}
 
-	let code = `\n\n@Override\npublic int hashCode() {\n\treturn HashCode.of(`;
+	let code = `\n\n@Override\npublic int hashCode() {\n\treturn Hashcode.of(`;
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
 		const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
@@ -109,6 +111,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 
 }
 
+// generate with methods
 export function generateWithFields(selectedAttributes: string[]): string {
 
 	let code = '';

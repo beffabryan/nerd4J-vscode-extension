@@ -61,6 +61,7 @@ function generateEquals(selectedAttributes, createHashCode = false) {
     return code;
 }
 exports.generateEquals = generateEquals;
+// generate hashCode method
 function generateHashCode(selectedAttributes) {
     //check if there are selected attributes
     if (selectedAttributes.length === 0) {
@@ -72,7 +73,7 @@ function generateHashCode(selectedAttributes) {
         showErrorMessage("Il metodo hashCode() è già implementato");
         return "";
     }
-    let code = `\n\n@Override\npublic int hashCode() {\n\treturn HashCode.of(`;
+    let code = `\n\n@Override\npublic int hashCode() {\n\treturn Hashcode.of(`;
     for (let i = 0; i < selectedAttributes.length; i++) {
         const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
         if (attributeName) {
@@ -86,6 +87,7 @@ function generateHashCode(selectedAttributes) {
     return code;
 }
 exports.generateHashCode = generateHashCode;
+// generate with methods
 function generateWithFields(selectedAttributes) {
     let code = '';
     for (let i = 0; i < selectedAttributes.length; i++) {

@@ -134,7 +134,7 @@ function getAttributes(): Promise<any> {
 	return new Promise((resolve, reject) => {
 
 		// get current folder path
-		const currentPath = "C:\\Users\\Bryan\\Desktop\\nerd4J-vscode-extension\\madnessjavaextension\\src";
+		const currentPath = "C:\\Users\\Bryan\\Desktop\\nerd4J-vscode-extension\\madnessjavaextension\\src\\java";
 		const arg = "C:\\Users\\Bryan\\Desktop\\Car.java";
 
 		vscode.window.showInformationMessage(`Path: ${currentPath}`);
