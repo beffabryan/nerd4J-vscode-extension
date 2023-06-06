@@ -111,7 +111,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 
 }
 
-// generate with methods
+// generate with methods 
 export function generateWithFields(selectedAttributes: string[], className: string): string {
 
 	let code = '';

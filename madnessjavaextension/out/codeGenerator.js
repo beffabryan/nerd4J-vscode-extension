@@ -87,7 +87,7 @@ function generateHashCode(selectedAttributes) {
     return code;
 }
 exports.generateHashCode = generateHashCode;
-// generate with methods
+// generate with methods 
 function generateWithFields(selectedAttributes, className) {
     let code = '';
     for (let i = 0; i < selectedAttributes.length; i++) {
