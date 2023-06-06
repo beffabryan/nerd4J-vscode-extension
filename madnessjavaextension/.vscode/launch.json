@@ -7,6 +7,13 @@
 	"configurations": [
 		{
 			"type": "java",
+			"name": "FileAnalyzer",
+			"request": "launch",
+			"mainClass": "src.java.FileAnalyzer",
+			"projectName": "madnessjavaextension_fd5d6206"
+		},
+		{
+			"type": "java",
 			"name": "Car",
 			"request": "launch",
 			"mainClass": "Car",

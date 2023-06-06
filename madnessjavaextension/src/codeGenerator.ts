@@ -29,9 +29,9 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 	let code = `\n@Override\npublic String toString() {\n\treturn ToString.of(this)`;
 
 	for (const attribute of selectedAttributes) {
-		const attributeName = attribute.match(/\w+/); // get variable name
+		const attributeName = attribute.split(" ")[1]; // get variable name
 		if (attributeName)
-			code += `\n\t\t.print("${attributeName[0]}", ${attributeName[0]})`;
+			code += `\n\t\t.print("${attributeName}", ${attributeName})`;
 	}
 
 	code += `\n\t\t.${selectedType}();\n}`;
@@ -56,10 +56,10 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 
 		code += `\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,`;
 		for (let i = 0; i < selectedAttributes.length; i++) {
-			const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
+			const attributeName = selectedAttributes[i].split(" ")[1];
 
 			if (attributeName) {
-				code += `\n\t\to -> o.${attributeName[0]}`;
+				code += `\n\t\to -> o.${attributeName}`;
 
 				//check index
 				if (i != selectedAttributes.length - 1)
@@ -95,10 +95,10 @@ export function generateHashCode(selectedAttributes: string[]): string {
 	let code = `\n\n@Override\npublic int hashCode() {\n\treturn Hashcode.of(`;
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
-		const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
+		const attributeName = selectedAttributes[i].split(" ")[1];
 
 		if (attributeName) {
-			code += `${attributeName[0]}`;
+			code += `${attributeName}`;
 
 			//check index
 			if (i != selectedAttributes.length - 1)
@@ -112,17 +112,18 @@ export function generateHashCode(selectedAttributes: string[]): string {
 }
 
 // generate with methods
-export function generateWithFields(selectedAttributes: string[]): string {
+export function generateWithFields(selectedAttributes: string[], className: string): string {
 
 	let code = '';
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
-		const attributeName = selectedAttributes[i].match(/\w+/); // Ottieni il nome della variabile
+		const attributeType = selectedAttributes[i].split(" ")[0];
+		const attributeName = selectedAttributes[i].split(" ")[1];
 
 		if (attributeName) {
 			//set first letter to upper case
-			const methodName = 'with' + attributeName[0].charAt(0).toUpperCase() + attributeName[0].slice(1);
-			code += `\npublic Object ${methodName}(String value) {\n\tthis.${attributeName[0]} = value;\n\treturn this;\n}\n`;
+			const methodName = 'with' + attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
+			code += `\npublic ${className} ${methodName}(${attributeType} value) {\n\tthis.${attributeName} = value;\n\treturn this;\n}\n`;
 		}
 	}
 

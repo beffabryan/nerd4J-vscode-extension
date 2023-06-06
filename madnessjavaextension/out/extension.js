@@ -11,6 +11,7 @@ let options = [
     { label: 'id', picked: true },
     { label: 'iban', picked: true }
 ];
+let className = '';
 const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
 function activate(context) {
     const hashCode = [
@@ -48,7 +49,7 @@ function activate(context) {
         });
         if (selectedOptions) {
             const selectedAttributes = selectedOptions.map(option => option.label);
-            const withFieldCode = (0, codeGenerator_1.generateWithFields)(selectedAttributes);
+            const withFieldCode = (0, codeGenerator_1.generateWithFields)(selectedAttributes, className);
             const editor = vscode.window.activeTextEditor;
             if (editor) {
                 const selection = editor.selection;
@@ -122,11 +123,11 @@ function getAttributes() {
             const outputList = output.split("\n");
             //remove all options
             options = [];
-            for (let i = 0; i < outputList.length; i++) {
+            className = outputList[0].trim();
+            for (let i = 1; i < outputList.length; i++) {
                 let option = outputList[i].trim();
                 options.push({ label: option, picked: true });
             }
-            console.log(`List: ${outputList}`);
             resolve(options);
         });
     });

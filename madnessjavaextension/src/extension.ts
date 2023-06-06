@@ -9,6 +9,7 @@ let options = [
 	{ label: 'id', picked: true },
 	{ label: 'iban', picked: true }
 ];
+let className: string = '';
 
 const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
 
@@ -61,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selectedOptions) {
 			const selectedAttributes = selectedOptions.map(option => option.label);
 
-			const withFieldCode = generateWithFields(selectedAttributes);
+			const withFieldCode = generateWithFields(selectedAttributes, className);
 
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {
@@ -159,12 +160,11 @@ function getAttributes(): Promise<any> {
 
 			//remove all options
 			options = [];
-			for (let i = 0; i < outputList.length; i++) {
+			className = outputList[0].trim();
+			for (let i = 1; i < outputList.length; i++) {
 				let option = outputList[i].trim();
 				options.push({ label: option, picked: true });
 			}
-
-			console.log(`List: ${outputList}`);
 			resolve(options);
 		});
 	});

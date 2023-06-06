@@ -1,4 +1,6 @@
-package src.java;
+
+
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -41,7 +43,7 @@ public class FileAnalyzer {
      */
     public List<String> getClassFields() {
         return Arrays.stream(loadedClass.getDeclaredFields())
-                .map(Field::getName)
+                .map(field -> field.getType().getSimpleName() + " " + field.getName())
                 .collect(Collectors.toList());
     }
 
@@ -57,7 +59,7 @@ public class FileAnalyzer {
 
         // get all the public fields of the parent classes
         while (!clazz.getSuperclass().equals(Object.class)) {
-            
+
             // get all the fields of the parent class
             clazz = clazz.getSuperclass();
 
@@ -65,14 +67,13 @@ public class FileAnalyzer {
             for (Field field : fields) {
 
                 if (field.getModifiers() == Modifier.PUBLIC || field.getModifiers() == Modifier.PROTECTED)
-                    parentsClassPublicFields.add(field.getName());
+                    parentsClassPublicFields.add(field.getType().getSimpleName() + " " + field.getName());
             }
 
         }
 
         return parentsClassPublicFields;
     }
-
 
     /**
      * Returns all the visible fields of the class
@@ -82,13 +83,12 @@ public class FileAnalyzer {
     public List<String> getVisibleFields() {
 
         List<String> visibleFields = new ArrayList<String>();
+        visibleFields.add(loadedClass.getSimpleName());
         visibleFields.addAll(getClassFields());
         visibleFields.addAll(getParentsVisibleFields());
 
         return visibleFields;
     }
-
-
 
     public static void main(String[] args) {
 
@@ -102,10 +102,8 @@ public class FileAnalyzer {
             for (String field : visibleFields)
                 System.out.println(field);
 
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }
