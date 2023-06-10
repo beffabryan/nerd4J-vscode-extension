@@ -4,6 +4,8 @@ exports.activate = void 0;
 const vscode = require("vscode");
 const codeGenerator_1 = require("./codeGenerator");
 const child_process_1 = require("child_process");
+const path = require("path");
+const config_1 = require("./config");
 let options = [
     { label: 'age', picked: true },
     { label: 'name', picked: true },
@@ -88,7 +90,7 @@ function activate(context) {
         }
     });
     context.subscriptions.push(equals);
-    const disposable1 = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
+    const showContextMenu = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
         const selectedOption = await vscode.window.showQuickPick([
             { label: 'toString() method', command: 'madnessjavaextension.generateToString' },
             { label: 'equals() and hashCode', command: 'madnessjavaextension.generateEquals' },
@@ -98,38 +100,52 @@ function activate(context) {
             vscode.commands.executeCommand(selectedOption.command);
         }
     });
-    context.subscriptions.push(disposable1);
+    context.subscriptions.push(showContextMenu);
 }
 exports.activate = activate;
 // get attributes using java reflection
 function getAttributes() {
     return new Promise((resolve, reject) => {
-        // get current folder path
-        const currentPath = "C:\\Users\\Bryan\\Desktop\\nerd4J-vscode-extension\\madnessjavaextension\\src\\java";
-        const arg = "C:\\Users\\Bryan\\Desktop\\Car.java";
-        vscode.window.showInformationMessage(`Path: ${currentPath}`);
-        (0, child_process_1.exec)(`java -cp ${currentPath} FileAnalyzer ${arg}`, (error, stdout, stderr) => {
-            if (error) {
-                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
-                return;
+        // get root path
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders) {
+            const projectRoot = workspaceFolders[0].uri.fsPath;
+            vscode.window.showInformationMessage(`Project root: ${projectRoot}`);
+            // get current active editor file path
+            const activeEditor = vscode.window.activeTextEditor;
+            if (activeEditor) {
+                // Get the class name of the active file
+                const fileUri = activeEditor.document.uri;
+                const arg = path.join(projectRoot, config_1.JAVA_COMPILED_FOLDER, 'com', 'mvnproject', path.basename(fileUri.fsPath));
+                vscode.window.showInformationMessage(`File path: ${arg}`);
+                (0, child_process_1.exec)(`${config_1.JAVA_COMMAND} ${arg}`, (error, stdout, stderr) => {
+                    if (error) {
+                        vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
+                        return;
+                    }
+                    if (stderr) {
+                        vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
+                        return;
+                    }
+                    const output = stdout.trim();
+                    // save output in a list
+                    const outputList = output.split("\n");
+                    //remove all options
+                    options = [];
+                    className = outputList[0].trim();
+                    for (let i = 1; i < outputList.length; i++) {
+                        let option = outputList[i].trim();
+                        options.push({ label: option, picked: true });
+                    }
+                    resolve(options);
+                });
             }
-            if (stderr) {
-                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
-                return;
+            else {
+                console.log('No active editor');
             }
-            const output = stdout.trim();
-            console.log(`Output 1: ${output}`);
-            // save output in a list
-            const outputList = output.split("\n");
-            //remove all options
-            options = [];
-            className = outputList[0].trim();
-            for (let i = 1; i < outputList.length; i++) {
-                let option = outputList[i].trim();
-                options.push({ label: option, picked: true });
-            }
-            resolve(options);
-        });
+        }
+        else
+            vscode.window.showInformationMessage('Impossibile trovare la folder root del progetto');
     });
 }
 //# sourceMappingURL=extension.js.map
