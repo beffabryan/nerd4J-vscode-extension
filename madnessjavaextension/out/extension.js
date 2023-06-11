@@ -6,13 +6,7 @@ const codeGenerator_1 = require("./codeGenerator");
 const child_process_1 = require("child_process");
 const path = require("path");
 const config_1 = require("./config");
-let options = [
-    { label: 'age', picked: true },
-    { label: 'name', picked: true },
-    { label: 'surname', picked: true },
-    { label: 'id', picked: true },
-    { label: 'iban', picked: true }
-];
+let options = [];
 let className = '';
 const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
 function activate(context) {
@@ -111,7 +105,6 @@ function getAttributes() {
         if (workspaceFolders) {
             const projectRoot = workspaceFolders[0].uri.fsPath;
             const fullCompiledPath = path.join(projectRoot, config_1.JAVA_COMPILED_FOLDER);
-            vscode.window.showInformationMessage(`Compiled root: ${fullCompiledPath}`);
             // get current active editor file path
             const activeEditor = vscode.window.activeTextEditor;
             if (activeEditor) {
@@ -119,8 +112,10 @@ function getAttributes() {
                 const fileUri = activeEditor.document.uri;
                 const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
                 const arg = path.join(projectRoot, config_1.JAVA_COMPILED_FOLDER, 'com', 'mvnproject', fileName);
-                vscode.window.showInformationMessage(`File path: ${arg}`);
-                (0, child_process_1.exec)(`${config_1.JAVA_COMMAND} ${fullCompiledPath} com.mvnproject.Car`, (error, stdout, stderr) => {
+                // get package name
+                const packageName = (0, codeGenerator_1.getPackageName)();
+                const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
+                (0, child_process_1.exec)(`${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition}`, (error, stdout, stderr) => {
                     if (error) {
                         vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
                         return;

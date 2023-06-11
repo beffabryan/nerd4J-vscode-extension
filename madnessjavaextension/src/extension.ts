@@ -1,19 +1,12 @@
 import * as vscode from 'vscode';
-import { generateEquals, generateToStringCode, generateWithFields } from './codeGenerator';
+import { generateEquals, generateToStringCode, generateWithFields, getPackageName } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
 import { JAVA_COMMAND, JAVA_COMPILED_FOLDER } from './config';
 
-let options = [
-	{ label: 'age', picked: true },
-	{ label: 'name', picked: true },
-	{ label: 'surname', picked: true },
-	{ label: 'id', picked: true },
-	{ label: 'iban', picked: true }
-];
+let options: vscode.QuickPickItem[] = [];
 let className: string = '';
-
-const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
+const printers: string[] = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
 
 export function activate(context: vscode.ExtensionContext) {
 	const hashCode = [
@@ -141,7 +134,6 @@ function getAttributes(): Promise<any> {
 		if (workspaceFolders) {
 			const projectRoot = workspaceFolders[0].uri.fsPath;
 			const fullCompiledPath = path.join(projectRoot, JAVA_COMPILED_FOLDER);
-			vscode.window.showInformationMessage(`Compiled root: ${fullCompiledPath}`);
 
 			// get current active editor file path
 			const activeEditor = vscode.window.activeTextEditor;
@@ -152,9 +144,12 @@ function getAttributes(): Promise<any> {
 				const fileUri = activeEditor.document.uri;
 				const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
 				const arg = path.join(projectRoot, JAVA_COMPILED_FOLDER, 'com', 'mvnproject', fileName);
-				vscode.window.showInformationMessage(`File path: ${arg}`);
 
-				exec(`${JAVA_COMMAND} ${fullCompiledPath} com.mvnproject.Car`, (error, stdout, stderr) => {
+				// get package name
+				const packageName = getPackageName();
+				const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
+
+				exec(`${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition}`, (error, stdout, stderr) => {
 					if (error) {
 						vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
 						return;

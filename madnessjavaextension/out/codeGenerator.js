@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateWithFields = exports.generateHashCode = exports.generateEquals = exports.generateToStringCode = void 0;
+exports.generateWithFields = exports.generateHashCode = exports.generateEquals = exports.generateToStringCode = exports.getPackageName = void 0;
 const vscode = require("vscode");
 function checkIfMethodAlreadyExists(methodName) {
     const editor = vscode.window.activeTextEditor;
@@ -11,6 +11,14 @@ function checkIfMethodAlreadyExists(methodName) {
 function showErrorMessage(message) {
     vscode.window.showErrorMessage(message);
 }
+function getPackageName() {
+    const editor = vscode.window.activeTextEditor;
+    const editorText = editor?.document.getText();
+    const packageRegex = /package\s+([a-zA-Z0-9.]+);/g;
+    const match = packageRegex.exec(editorText);
+    return match ? match[1] : "";
+}
+exports.getPackageName = getPackageName;
 function generateToStringCode(selectedAttributes, selectedType) {
     //check if toString already exists
     if (checkIfMethodAlreadyExists('public String toString()')) {

@@ -12,6 +12,16 @@ function showErrorMessage(message: string) {
 	vscode.window.showErrorMessage(message);
 }
 
+export function getPackageName(): string {
+	const editor = vscode.window.activeTextEditor;
+	const editorText = editor?.document.getText();
+
+	const packageRegex = /package\s+([a-zA-Z0-9.]+);/g;
+	const match = packageRegex.exec(editorText!);
+
+	return match ? match[1] : "";
+}
+
 export function generateToStringCode(selectedAttributes: string[], selectedType: string): string {
 
 	//check if toString already exists
