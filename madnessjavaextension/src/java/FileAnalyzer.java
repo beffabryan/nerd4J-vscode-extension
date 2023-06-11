@@ -22,7 +22,7 @@ public class FileAnalyzer {
         // check if directory exists
         File directory = new File(compiledFilesPath);
         if (!directory.exists())
-            throw new Exception("Directory does not exist.");
+            throw new Exception("Directory does not exist");
 
         URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { directory.toURI().toURL() });
         loadedClass = classLoader.loadClass(className);
@@ -83,23 +83,20 @@ public class FileAnalyzer {
         return visibleFields;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        //String filePath = args[0];
-        //String compiledFilesPath = "C:\\Users\\Bryan\\Desktop\\mvn-project\\target\\classes";
+        // String filePath = args[0];
+        // String compiledFilesPath =
+        // "C:\\Users\\Bryan\\Desktop\\mvn-project\\target\\classes";
         String compiledFilesPath = args[0];
         String className = args[1];
 
-        try {
-            FileAnalyzer fileAnalyzer = new FileAnalyzer(compiledFilesPath, className);
+        FileAnalyzer fileAnalyzer = new FileAnalyzer(compiledFilesPath, className);
 
-            // get all visible fields
-            List<String> visibleFields = fileAnalyzer.getVisibleFields();
-            for (String field : visibleFields)
-                System.out.println(field);
+        // get all visible fields
+        List<String> visibleFields = fileAnalyzer.getVisibleFields();
+        for (String field : visibleFields)
+            System.out.println(field);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

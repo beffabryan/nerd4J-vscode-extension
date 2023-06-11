@@ -140,7 +140,8 @@ function getAttributes(): Promise<any> {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		if (workspaceFolders) {
 			const projectRoot = workspaceFolders[0].uri.fsPath;
-			vscode.window.showInformationMessage(`Project root: ${projectRoot}`);
+			const fullCompiledPath = path.join(projectRoot, JAVA_COMPILED_FOLDER);
+			vscode.window.showInformationMessage(`Compiled root: ${fullCompiledPath}`);
 
 			// get current active editor file path
 			const activeEditor = vscode.window.activeTextEditor;
@@ -149,10 +150,11 @@ function getAttributes(): Promise<any> {
 
 				// Get the class name of the active file
 				const fileUri = activeEditor.document.uri;
-				const arg = path.join(projectRoot, JAVA_COMPILED_FOLDER, 'com', 'mvnproject', path.basename(fileUri.fsPath));
+				const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
+				const arg = path.join(projectRoot, JAVA_COMPILED_FOLDER, 'com', 'mvnproject', fileName);
 				vscode.window.showInformationMessage(`File path: ${arg}`);
 
-				exec(`${JAVA_COMMAND} ${arg}`, (error, stdout, stderr) => {
+				exec(`${JAVA_COMMAND} ${fullCompiledPath} com.mvnproject.Car`, (error, stdout, stderr) => {
 					if (error) {
 						vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
 						return;
