@@ -1,6 +1,4 @@
 
-
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -15,25 +13,20 @@ public class FileAnalyzer {
 
     private Class<?> loadedClass;
 
-    public FileAnalyzer(String filePath) throws Exception {
-        init(filePath);
+    public FileAnalyzer(String compiledFilesPath, String className) throws Exception {
+        init(compiledFilesPath, className);
     }
 
-    private void init(String filePath) throws Exception {
+    private void init(String compiledFilesPath, String className) throws Exception {
 
-        // set file from filePath
-        File file = new File(filePath);
+        // check if directory exists
+        File directory = new File(compiledFilesPath);
+        if (!directory.exists())
+            throw new Exception("Directory does not exist.");
 
-        if (!file.exists())
-            throw new Exception("File does not exist.");
+        URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { directory.toURI().toURL() });
+        loadedClass = classLoader.loadClass(className);
 
-        URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { file.getParentFile().toURI().toURL() });
-        loadedClass = classLoader.loadClass(getClassNameFromFile(file));
-    }
-
-    private static String getClassNameFromFile(File file) {
-        String fileName = file.getName();
-        return fileName.substring(0, fileName.lastIndexOf('.'));
     }
 
     /**
@@ -92,10 +85,13 @@ public class FileAnalyzer {
 
     public static void main(String[] args) {
 
-        String filePath = args[0];
+        //String filePath = args[0];
+        //String compiledFilesPath = "C:\\Users\\Bryan\\Desktop\\mvn-project\\target\\classes";
+        String compiledFilesPath = args[0];
+        String className = args[1];
 
         try {
-            FileAnalyzer fileAnalyzer = new FileAnalyzer(filePath);
+            FileAnalyzer fileAnalyzer = new FileAnalyzer(compiledFilesPath, className);
 
             // get all visible fields
             List<String> visibleFields = fileAnalyzer.getVisibleFields();
