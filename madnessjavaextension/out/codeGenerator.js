@@ -2,12 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateWithFields = exports.generateHashCode = exports.generateEquals = exports.generateToStringCode = exports.getPackageName = void 0;
 const vscode = require("vscode");
+// check if method already exists
 function checkIfMethodAlreadyExists(methodName) {
     const editor = vscode.window.activeTextEditor;
     const editorText = editor?.document.getText();
     // check if to string exitst
     return editorText?.includes(methodName);
 }
+// show error message
 function showErrorMessage(message) {
     vscode.window.showErrorMessage(message);
 }

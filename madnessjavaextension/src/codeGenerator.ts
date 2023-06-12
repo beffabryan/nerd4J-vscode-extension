@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+// check if method already exists
 function checkIfMethodAlreadyExists(methodName: string) {
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
@@ -8,6 +9,7 @@ function checkIfMethodAlreadyExists(methodName: string) {
 	return editorText?.includes(methodName);
 }
 
+// show error message
 function showErrorMessage(message: string) {
 	vscode.window.showErrorMessage(message);
 }
