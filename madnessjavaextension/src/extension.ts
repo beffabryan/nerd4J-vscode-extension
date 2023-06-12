@@ -82,8 +82,6 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 		if (selectedOptions) {
-			const selectedAttributes = selectedOptions.map(option => option.label);
-
 			const hashCodeOption = await vscode.window.showQuickPick(hashCode, {
 				canPickMany: true,
 				placeHolder: 'Create equals'
@@ -93,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				const selectedAttributes = selectedOptions.map(option => option.label);
 
-				let createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
+				const createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
 				const equalsCode = generateEquals(selectedAttributes, createHashCode);
 
 				const editor = vscode.window.activeTextEditor;
@@ -118,9 +116,9 @@ export function activate(context: vscode.ExtensionContext) {
 			{ placeHolder: 'Select an option' }
 		);
 
-		if (selectedOption) {
+		if (selectedOption) 
 			vscode.commands.executeCommand(selectedOption.command);
-		}
+		
 	});
 	context.subscriptions.push(showContextMenu);
 }
@@ -147,7 +145,6 @@ function getAttributes(editableField: boolean = false): Promise<any> {
 				// get package name
 				const packageName = getPackageName(activeEditor.document.getText());
 				const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
-
 				const javaCommand = `${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
 
 				exec(javaCommand, (error, stdout, stderr) => {
@@ -175,9 +172,9 @@ function getAttributes(editableField: boolean = false): Promise<any> {
 					}
 					resolve(options);
 				});
-			} else {
-				console.log('No active editor');
-			}
+			} else 
+				vscode.window.showErrorMessage('No active editor');
+			
 		} else
 			vscode.window.showInformationMessage('Impossibile trovare la folder root del progetto');
 	});

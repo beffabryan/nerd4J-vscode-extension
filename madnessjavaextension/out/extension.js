@@ -64,14 +64,13 @@ function activate(context) {
             placeHolder: 'Select attributes'
         });
         if (selectedOptions) {
-            const selectedAttributes = selectedOptions.map(option => option.label);
             const hashCodeOption = await vscode.window.showQuickPick(hashCode, {
                 canPickMany: true,
                 placeHolder: 'Create equals'
             });
             if (hashCodeOption) {
                 const selectedAttributes = selectedOptions.map(option => option.label);
-                let createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
+                const createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
                 const equalsCode = (0, codeGenerator_1.generateEquals)(selectedAttributes, createHashCode);
                 const editor = vscode.window.activeTextEditor;
                 if (editor) {
@@ -90,9 +89,8 @@ function activate(context) {
             { label: 'equals() and hashCode', command: 'madnessjavaextension.generateEquals' },
             { label: 'withField()', command: 'madnessjavaextension.generateWithField' }
         ], { placeHolder: 'Select an option' });
-        if (selectedOption) {
+        if (selectedOption)
             vscode.commands.executeCommand(selectedOption.command);
-        }
     });
     context.subscriptions.push(showContextMenu);
 }
@@ -137,9 +135,8 @@ function getAttributes(editableField = false) {
                     resolve(options);
                 });
             }
-            else {
-                console.log('No active editor');
-            }
+            else
+                vscode.window.showErrorMessage('No active editor');
         }
         else
             vscode.window.showInformationMessage('Impossibile trovare la folder root del progetto');
