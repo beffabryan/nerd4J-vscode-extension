@@ -5,15 +5,15 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FileAnalyzer {
 
     private Class<?> loadedClass;
+    private final boolean editableField;
 
-    public FileAnalyzer(String compiledFilesPath, String className) throws Exception {
+    public FileAnalyzer(String compiledFilesPath, String className, boolean editableField) throws Exception {
+        this.editableField = editableField;
         init(compiledFilesPath, className);
     }
 
@@ -30,14 +30,40 @@ public class FileAnalyzer {
     }
 
     /**
+     * Returns true if the field is visible
+     * 
+     * @param field the field to check
+     * @return true if the field is visible
+     */
+    private boolean isVisibleField(Field field) {
+        return Modifier.isPublic(field.getModifiers()) || Modifier.isProtected(field.getModifiers())
+                || Modifier.isFinal(field.getModifiers());
+    }
+
+    /**
      * Returns all the fields of the class
      * 
      * @return a list of fields
      */
     public List<String> getClassFields() {
-        return Arrays.stream(loadedClass.getDeclaredFields())
-                .map(field -> field.getType().getSimpleName() + " " + field.getName())
-                .collect(Collectors.toList());
+
+        List<String> fields = new ArrayList<String>();
+
+        Field[] declaredFields = loadedClass.getDeclaredFields();
+        for (Field field : declaredFields) {
+
+            // check if the field is final
+            if (editableField) {
+                if (!Modifier.isFinal(field.getModifiers()))
+                    fields.add(field.getType().getSimpleName() + " " + field.getName());
+
+            } else
+                fields.add(field.getType().getSimpleName() + " " + field.getName());
+
+        }
+
+        return fields;
+
     }
 
     /**
@@ -59,8 +85,16 @@ public class FileAnalyzer {
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
 
-                if (field.getModifiers() == Modifier.PUBLIC || field.getModifiers() == Modifier.PROTECTED)
-                    parentsClassPublicFields.add(field.getType().getSimpleName() + " " + field.getName());
+                if (isVisibleField(field) && !Modifier.isPrivate(field.getModifiers())) {
+
+                    // check if the field is final
+                    if (editableField) {
+                        if (!Modifier.isFinal(field.getModifiers()))
+                            parentsClassPublicFields.add(field.getType().getSimpleName() + " " + field.getName());
+
+                    } else
+                        parentsClassPublicFields.add(field.getType().getSimpleName() + " " + field.getName());
+                }
             }
 
         }
@@ -85,13 +119,16 @@ public class FileAnalyzer {
 
     public static void main(String[] args) throws Exception {
 
-        // String filePath = args[0];
-        // String compiledFilesPath =
-        // "C:\\Users\\Bryan\\Desktop\\mvn-project\\target\\classes";
+        if (args.length < 3) {
+            System.out.println("Usage: java FileAnalyzer <compiledFilesPath> <className> <editableFields>");
+            System.exit(1);
+        }
+
         String compiledFilesPath = args[0];
         String className = args[1];
+        boolean editableFields = Boolean.parseBoolean(args[2]);
 
-        FileAnalyzer fileAnalyzer = new FileAnalyzer(compiledFilesPath, className);
+        FileAnalyzer fileAnalyzer = new FileAnalyzer(compiledFilesPath, className, editableFields);
 
         // get all visible fields
         List<String> visibleFields = fileAnalyzer.getVisibleFields();

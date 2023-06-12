@@ -38,7 +38,7 @@ function activate(context) {
     context.subscriptions.push(toString);
     //generate with field command
     const withField = vscode.commands.registerCommand('madnessjavaextension.generateWithField', async () => {
-        await getAttributes();
+        await getAttributes(true);
         const selectedOptions = await vscode.window.showQuickPick(options, {
             canPickMany: true,
             placeHolder: 'Select attributes'
@@ -98,7 +98,7 @@ function activate(context) {
 }
 exports.activate = activate;
 // get attributes using java reflection
-function getAttributes() {
+function getAttributes(editableField = false) {
     return new Promise((resolve, reject) => {
         // get root path
         const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -114,7 +114,8 @@ function getAttributes() {
                 // get package name
                 const packageName = (0, codeGenerator_1.getPackageName)(activeEditor.document.getText());
                 const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
-                (0, child_process_1.exec)(`${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition}`, (error, stdout, stderr) => {
+                const javaCommand = `${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
+                (0, child_process_1.exec)(javaCommand, (error, stdout, stderr) => {
                     if (error) {
                         vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
                         return;
