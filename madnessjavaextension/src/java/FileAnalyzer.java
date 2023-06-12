@@ -7,6 +7,13 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class analyzes a compiled file and returns all the visible fields
+ * Usage: java FileAnalyzer <compiledFilesPath> <className> <editableFields>
+ * 
+ * @author Bryan Beffa
+ * @version 12.06.2023
+ */
 public class FileAnalyzer {
 
     private Class<?> loadedClass;
@@ -56,14 +63,10 @@ public class FileAnalyzer {
             if (editableField) {
                 if (!Modifier.isFinal(field.getModifiers()))
                     fields.add(field.getType().getSimpleName() + " " + field.getName());
-
             } else
                 fields.add(field.getType().getSimpleName() + " " + field.getName());
-
         }
-
         return fields;
-
     }
 
     /**
@@ -96,9 +99,7 @@ public class FileAnalyzer {
                         parentsClassPublicFields.add(field.getType().getSimpleName() + " " + field.getName());
                 }
             }
-
         }
-
         return parentsClassPublicFields;
     }
 

@@ -13,6 +13,10 @@ function checkIfMethodAlreadyExists(methodName) {
 function showErrorMessage(message) {
     vscode.window.showErrorMessage(message);
 }
+// show warning message
+function showWarningMessage(message) {
+    vscode.window.showWarningMessage(message);
+}
 // get package name
 function getPackageName(text) {
     const packageRegex = /package\s+([a-zA-Z0-9.]+);/g;
@@ -106,7 +110,12 @@ function generateWithFields(selectedAttributes, className) {
         if (attributeName) {
             //set first letter to upper case
             const methodName = 'with' + attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
-            code += `\npublic ${className} ${methodName}(${attributeType} value) {\n\tthis.${attributeName} = value;\n\treturn this;\n}\n`;
+            const methodSignature = `public ${className} ${methodName}(${attributeType} value)`;
+            //check if method already exists
+            if (!checkIfMethodAlreadyExists(methodSignature))
+                code += `\n${methodSignature} {\n\tthis.${attributeName} = value;\n\treturn this;\n}\n`;
+            else
+                showWarningMessage(`Metodo ${methodName} esiste già`);
         }
     }
     return code;
