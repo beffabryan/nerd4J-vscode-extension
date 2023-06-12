@@ -19,6 +19,11 @@ function showWarningMessage(message: string) {
 	vscode.window.showWarningMessage(message);
 }
 
+// show warning message
+function showInformationMessage(message: string) {
+	vscode.window.showInformationMessage(message);
+}
+
 // get package name
 export function getPackageName(text: string): string {
 	const packageRegex = /package\s+([a-zA-Z0-9.]+);/g;
@@ -50,6 +55,7 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 	}
 
 	code += `\n\t\t.${selectedType}();\n}`;
+	showInformationMessage("Metodo toString() generato");
 	return code;
 }
 
@@ -82,7 +88,8 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 			}
 		}
 
-		code += `\n\t);\n}`;
+		code += `\n\t);\n}`
+		showInformationMessage("Metodo equals() generato");
 	}
 
 	if (createHashCode)
@@ -122,6 +129,8 @@ export function generateHashCode(selectedAttributes: string[]): string {
 	}
 
 	code += `);\n}`;
+	showInformationMessage("Metodo hashCode() generato");
+
 	return code;
 
 }
@@ -147,6 +156,6 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 				showWarningMessage(`Metodo ${methodName} esiste già`);
 		}
 	}
-
+	showInformationMessage("Metodi withField() generati");
 	return code;
 }
