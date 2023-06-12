@@ -143,10 +143,9 @@ function getAttributes(): Promise<any> {
 				// Get the class name of the active file
 				const fileUri = activeEditor.document.uri;
 				const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
-				const arg = path.join(projectRoot, JAVA_COMPILED_FOLDER, 'com', 'mvnproject', fileName);
 
 				// get package name
-				const packageName = getPackageName();
+				const packageName = getPackageName(activeEditor.document.getText());
 				const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
 
 				exec(`${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition}`, (error, stdout, stderr) => {

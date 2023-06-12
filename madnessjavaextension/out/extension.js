@@ -111,9 +111,8 @@ function getAttributes() {
                 // Get the class name of the active file
                 const fileUri = activeEditor.document.uri;
                 const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
-                const arg = path.join(projectRoot, config_1.JAVA_COMPILED_FOLDER, 'com', 'mvnproject', fileName);
                 // get package name
-                const packageName = (0, codeGenerator_1.getPackageName)();
+                const packageName = (0, codeGenerator_1.getPackageName)(activeEditor.document.getText());
                 const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
                 (0, child_process_1.exec)(`${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition}`, (error, stdout, stderr) => {
                     if (error) {

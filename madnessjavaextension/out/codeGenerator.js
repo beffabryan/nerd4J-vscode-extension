@@ -11,14 +11,14 @@ function checkIfMethodAlreadyExists(methodName) {
 function showErrorMessage(message) {
     vscode.window.showErrorMessage(message);
 }
-function getPackageName() {
-    const editor = vscode.window.activeTextEditor;
-    const editorText = editor?.document.getText();
+// get package name
+function getPackageName(text) {
     const packageRegex = /package\s+([a-zA-Z0-9.]+);/g;
-    const match = packageRegex.exec(editorText);
+    const match = packageRegex.exec(text);
     return match ? match[1] : "";
 }
 exports.getPackageName = getPackageName;
+// generate toString method
 function generateToStringCode(selectedAttributes, selectedType) {
     //check if toString already exists
     if (checkIfMethodAlreadyExists('public String toString()')) {
