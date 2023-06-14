@@ -83,6 +83,7 @@ function activate(context) {
         }
     });
     context.subscriptions.push(equals);
+    //show context menu
     const showContextMenu = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
         const selectedOption = await vscode.window.showQuickPick([
             { label: 'toString() method', command: 'madnessjavaextension.generateToString' },
@@ -111,7 +112,7 @@ function getAttributes(editableField = false) {
                 const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
                 // get package name
                 const packageName = (0, codeGenerator_1.getPackageName)(activeEditor.document.getText());
-                const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
+                const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
                 const javaCommand = `${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
                 (0, child_process_1.exec)(javaCommand, (error, stdout, stderr) => {
                     if (error) {

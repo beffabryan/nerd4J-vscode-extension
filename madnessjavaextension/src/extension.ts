@@ -106,6 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(equals);
 
+	//show context menu
 	const showContextMenu = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
 		const selectedOption = await vscode.window.showQuickPick(
 			[
@@ -144,7 +145,7 @@ function getAttributes(editableField: boolean = false): Promise<any> {
 
 				// get package name
 				const packageName = getPackageName(activeEditor.document.getText());
-				const classDefinition = `${packageName}.${fileName.split('.')[0]}`;
+				const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
 				const javaCommand = `${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
 
 				exec(javaCommand, (error, stdout, stderr) => {
