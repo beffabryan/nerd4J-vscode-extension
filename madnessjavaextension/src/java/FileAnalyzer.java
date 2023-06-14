@@ -118,7 +118,7 @@ public class FileAnalyzer {
         return visibleFields;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         if (args.length < 3) {
             System.out.println("Usage: java FileAnalyzer <compiledFilesPath> <className> <editableFields>");
@@ -129,12 +129,19 @@ public class FileAnalyzer {
         String className = args[1];
         boolean editableFields = Boolean.parseBoolean(args[2]);
 
-        FileAnalyzer fileAnalyzer = new FileAnalyzer(compiledFilesPath, className, editableFields);
+        FileAnalyzer fileAnalyzer;
+        try {
+            fileAnalyzer = new FileAnalyzer(compiledFilesPath, className, editableFields);
 
-        // get all visible fields
-        List<String> visibleFields = fileAnalyzer.getVisibleFields();
-        for (String field : visibleFields)
-            System.out.println(field);
+            // get all visible fields
+            List<String> visibleFields = fileAnalyzer.getVisibleFields();
+            for (String field : visibleFields)
+                System.out.println(field);
 
+        } catch (UnsupportedClassVersionError e) {
+            System.err.println("Unsupported class version");
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
     }
 }
