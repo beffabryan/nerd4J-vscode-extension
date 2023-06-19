@@ -119,6 +119,30 @@ function activate(context) {
         }
     });
     context.subscriptions.push(equals);
+    //set compiled folder command
+    const setCustomCompiledFolder = vscode.commands.registerCommand('madnessjavaextension.setCustomCompiledFolder', async () => {
+        const compiledFolderOptions = {
+            canSelectMany: false,
+            openLabel: 'Select folder',
+            title: 'Select compiled folder',
+            canSelectFolders: true
+        };
+        vscode.window.showOpenDialog(compiledFolderOptions).then(fileUri => {
+            if (fileUri && fileUri[0]) {
+                (0, path_1.setCustomizedPath)(fileUri[0].fsPath);
+                vscode.window.showInformationMessage('Compiled folder set to: ' + fileUri[0].fsPath);
+            }
+            else
+                vscode.window.showErrorMessage('Error: the folder is not valid');
+        });
+    });
+    context.subscriptions.push(setCustomCompiledFolder);
+    // delete custom compiled folder command
+    const deleteCustomCompiledFolder = vscode.commands.registerCommand('madnessjavaextension.deleteCustomCompiledFolder', async () => {
+        (0, path_1.deleteCustomizedPath)();
+        vscode.window.showInformationMessage('Custom compiled folder deleted');
+    });
+    context.subscriptions.push(deleteCustomCompiledFolder);
     //show context menu
     const showContextMenu = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {
         const selectedOption = await vscode.window.showQuickPick([

@@ -25,7 +25,7 @@
       },
       {
         "language": "java",
-        "path": "./snippets/dependencies/.code-snippets"
+        "path": "./snippets/dependencies/groovy-dependencies.code-snippets"
       },
       {
         "language": "xml",
@@ -53,6 +53,14 @@
         "command": "madnessjavaextension.showContextMenu",
         "title": "Generate ...",
         "when": "resourceLangId == 'java'"
+      },
+      {
+        "command": "madnessjavaextension.setCustomCompiledFolder",
+        "title": "Set custom compiled files folder"
+      },
+      {
+        "command": "madnessjavaextension.deleteCustomCompiledFolder",
+        "title": "Delete custom compiled files folder"
       }
     ],
     "menus": {

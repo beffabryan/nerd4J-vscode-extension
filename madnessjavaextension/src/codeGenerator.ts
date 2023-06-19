@@ -36,13 +36,13 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 
 	//check if toString already exists
 	if (checkIfMethodAlreadyExists('public String toString()')) {
-		showErrorMessage("Il metodo toString() è già implementato");
+		showErrorMessage("The toString() method is already implemented.");
 		return "";
 	}
 
 	//check if there are selected attributes
 	if (selectedAttributes.length === 0) {
-		vscode.window.showErrorMessage("Nessun attributo selezionato");
+		vscode.window.showErrorMessage("No attribute selected");
 		return "";
 	}
 
@@ -55,7 +55,7 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 	}
 
 	code += `\n\t\t.${selectedType}();\n}`;
-	showInformationMessage("Metodo toString() generato");
+	showInformationMessage("toString() method generated");
 	return code;
 }
 
@@ -64,7 +64,7 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 
 	//check if there are selected attributes
 	if (selectedAttributes.length === 0) {
-		showErrorMessage("Nessun attributo selezionato");
+		showErrorMessage("No attribute selected");
 		return "";
 	}
 
@@ -72,7 +72,7 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 
 	//check if equals already exists
 	if (checkIfMethodAlreadyExists('boolean equals(Object other)'))
-		showErrorMessage("Il metodo equals() è già implementato");
+		showErrorMessage("The equals() method is already implemented.");
 	else {
 
 		code += `\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,`;
@@ -89,7 +89,7 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 		}
 
 		code += `\n\t);\n}`
-		showInformationMessage("Metodo equals() generato");
+		showInformationMessage("equals() method generated");
 	}
 
 	if (createHashCode)
@@ -104,13 +104,13 @@ export function generateHashCode(selectedAttributes: string[]): string {
 
 	//check if there are selected attributes
 	if (selectedAttributes.length === 0) {
-		showErrorMessage("Nessun attributo selezionato");
+		showErrorMessage("No attribute selected");
 		return "";
 	}
 
 	//check if hashCode already exists
 	if (checkIfMethodAlreadyExists('int hashCode()')) {
-		showErrorMessage("Il metodo hashCode() è già implementato");
+		showErrorMessage("The hashCode() method is already implemented.");
 		return "";
 	}
 
@@ -129,7 +129,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 	}
 
 	code += `);\n}`;
-	showInformationMessage("Metodo hashCode() generato");
+	showInformationMessage("hashCode() method generated");
 
 	return code;
 
@@ -153,9 +153,9 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 			if (!checkIfMethodAlreadyExists(methodSignature))
 				code += `\n${methodSignature} {\n\tthis.${attributeName} = value;\n\treturn this;\n}\n`;
 			else
-				showWarningMessage(`Metodo ${methodName} esiste già`);
+				showWarningMessage(`Method ${methodName} already exists`);
 		}
 	}
-	showInformationMessage("Metodi withField() generati");
+	showInformationMessage("withField() methods generated");
 	return code;
 }

@@ -3,7 +3,7 @@ import { generateEquals, generateHashCode, generateToStringCode, generateWithFie
 import { exec } from 'child_process';
 import * as path from 'path';
 import { JAVA_COMMAND } from './config';
-import { existingPath } from './path';
+import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -153,6 +153,33 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 	context.subscriptions.push(equals);
+
+	//set compiled folder command
+	const setCustomCompiledFolder = vscode.commands.registerCommand('madnessjavaextension.setCustomCompiledFolder', async () => {
+		const compiledFolderOptions: vscode.OpenDialogOptions = {
+			canSelectMany: false,
+			openLabel: 'Select folder',
+			title: 'Select compiled folder',
+			canSelectFolders: true
+		};
+
+		vscode.window.showOpenDialog(compiledFolderOptions).then(fileUri => {
+			if (fileUri && fileUri[0]) {
+				setCustomizedPath(fileUri[0].fsPath);
+				vscode.window.showInformationMessage('Compiled folder set to: ' + fileUri[0].fsPath);
+			} else
+				vscode.window.showErrorMessage('Error: the folder is not valid');
+		});
+
+	});
+	context.subscriptions.push(setCustomCompiledFolder);
+
+	// delete custom compiled folder command
+	const deleteCustomCompiledFolder = vscode.commands.registerCommand('madnessjavaextension.deleteCustomCompiledFolder', async () => {
+		deleteCustomizedPath();
+		vscode.window.showInformationMessage('Custom compiled folder deleted');
+	});
+	context.subscriptions.push(deleteCustomCompiledFolder);
 
 	//show context menu
 	const showContextMenu = vscode.commands.registerCommand('madnessjavaextension.showContextMenu', async () => {

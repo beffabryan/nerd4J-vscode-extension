@@ -3,20 +3,37 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 
 // Maven, Buildr, Grails, Leiningen
-const STANDARD_COMPILED_FOLDER = join('target', 'classes');
+const STANDARD_COMPILED_FOLDER: string = join('target', 'classes');
 
 // Ant
-const ANT_COMPILED_FOLDER = join('build', 'classes');
+const ANT_COMPILED_FOLDER: string = join('build', 'classes');
 
-// SBT
+// custo path
+let customCompiledPath: string = '';
 
-const possiblePaths: string[] = [
+// the order is important
+let possiblePaths: string[] = [
     ANT_COMPILED_FOLDER,
     STANDARD_COMPILED_FOLDER
 ]
 
+export function setCustomizedPath(path: string): void {
+    customCompiledPath = path;
+}
+
+export function deleteCustomizedPath(): void {
+    customCompiledPath = '';
+}
+
+
 // return the path of the compiled folder
 export function existingPath(projectPath: string): string {
+
+    // check custom path
+    if (customCompiledPath !== '' &&  fs.existsSync(customCompiledPath)){
+        vscode.window.showWarningMessage(`The path ${customCompiledPath} was found`);
+        return customCompiledPath;
+    }
 
     for (const possiblePath of possiblePaths) {
         const path = join(projectPath, possiblePath);
