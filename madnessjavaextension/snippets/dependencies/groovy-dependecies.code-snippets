@@ -1,0 +1,14 @@
+{
+    "Groovy Grape dependency": {
+        "prefix": [
+            "nerd4j"
+        ],
+        "body": [
+            "@Grapes(",
+            "\t@Grab(group='org.nerd4j', module='nerd4j-utils', version='2.0.0')",
+            ")"
+        ],
+        "description": "Nerd4J-utils dependency for Groovy Grape",
+        "scope": "java"
+    }
+}

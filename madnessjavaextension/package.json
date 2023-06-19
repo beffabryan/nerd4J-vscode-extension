@@ -24,6 +24,10 @@
         "path": "./snippets/java/java.code-snippets"
       },
       {
+        "language": "java",
+        "path": "./snippets/dependencies/.code-snippets"
+      },
+      {
         "language": "xml",
         "path": "./snippets/dependencies/xml-dependencies.code-snippets"
       },

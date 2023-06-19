@@ -6,6 +6,7 @@ const codeGenerator_1 = require("./codeGenerator");
 const child_process_1 = require("child_process");
 const path = require("path");
 const config_1 = require("./config");
+const path_1 = require("./path");
 let options = [];
 let className = '';
 const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
@@ -125,7 +126,7 @@ function activate(context) {
             { label: 'equals() and hashCode', command: 'madnessjavaextension.generateEquals' },
             { label: 'withField()', command: 'madnessjavaextension.generateWithField' },
             { label: 'all methods', command: 'madnessjavaextension.generateAllMethods' }
-        ], { placeHolder: 'Select an option' });
+        ], { placeHolder: 'Generate' });
         if (selectedOption)
             vscode.commands.executeCommand(selectedOption.command);
     });
@@ -139,44 +140,48 @@ function getAttributes(editableField = false) {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (workspaceFolders) {
             const projectRoot = workspaceFolders[0].uri.fsPath;
-            const fullCompiledPath = path.join(projectRoot, config_1.JAVA_COMPILED_FOLDER);
-            // get current active editor file path
-            const activeEditor = vscode.window.activeTextEditor;
-            if (activeEditor) {
-                // Get the class name of the active file
-                const fileUri = activeEditor.document.uri;
-                const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
-                // get package name
-                const packageName = (0, codeGenerator_1.getPackageName)(activeEditor.document.getText());
-                const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
-                const javaCommand = `${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
-                (0, child_process_1.exec)(javaCommand, (error, stdout, stderr) => {
-                    if (error) {
-                        vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
-                        return;
-                    }
-                    if (stderr) {
-                        vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
-                        return;
-                    }
-                    const output = stdout.trim();
-                    // save output in a list
-                    const outputList = output.split("\n");
-                    //remove all options
-                    options = [];
-                    className = outputList[0].trim();
-                    for (let i = 1; i < outputList.length; i++) {
-                        let option = outputList[i].trim();
-                        options.push({ label: option, picked: true });
-                    }
-                    resolve(options);
-                });
+            const fullCompiledPath = (0, path_1.existingPath)(projectRoot);
+            if (fullCompiledPath) {
+                // get current active editor file path
+                const activeEditor = vscode.window.activeTextEditor;
+                if (activeEditor) {
+                    // Get the class name of the active file
+                    const fileUri = activeEditor.document.uri;
+                    const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
+                    // get package name
+                    const packageName = (0, codeGenerator_1.getPackageName)(activeEditor.document.getText());
+                    const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
+                    const javaCommand = `${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
+                    (0, child_process_1.exec)(javaCommand, (error, stdout, stderr) => {
+                        if (error) {
+                            vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
+                            return;
+                        }
+                        if (stderr) {
+                            vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
+                            return;
+                        }
+                        const output = stdout.trim();
+                        // save output in a list
+                        const outputList = output.split("\n");
+                        //remove all options
+                        options = [];
+                        className = outputList[0].trim();
+                        for (let i = 1; i < outputList.length; i++) {
+                            let option = outputList[i].trim();
+                            options.push({ label: option, picked: true });
+                        }
+                        resolve(options);
+                    });
+                }
+                else
+                    vscode.window.showErrorMessage('No active editor');
             }
             else
-                vscode.window.showErrorMessage('No active editor');
+                vscode.window.showErrorMessage('Impossibile trovare la cartella contenente i file compilati');
         }
         else
-            vscode.window.showInformationMessage('Impossibile trovare la folder root del progetto');
+            vscode.window.showErrorMessage('Impossibile trovare la folder root del progetto');
     });
 }
 //# sourceMappingURL=extension.js.map

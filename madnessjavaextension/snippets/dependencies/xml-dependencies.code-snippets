@@ -36,18 +36,6 @@
         "description": "Nerd4J-utils dependency for Apache Ant",
         "scope": "text.xml"
     },
-    "Groovy Grape dependency": {
-        "prefix": [
-            "nerd4j"
-        ],
-        "body": [
-            "@Grapes(",
-            "@Grab(group='org.nerd4j', module='nerd4j-utils', version='2.0.0')",
-            ")"
-        ],
-        "description": "Nerd4J-utils dependency for Groovy Grape",
-        "scope": "text.xml"
-    },
     "Grails dependency": {
         "prefix": [
             "nerd4j"
