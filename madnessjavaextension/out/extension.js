@@ -209,10 +209,10 @@ function getAttributes(editableField = false) {
                     vscode.window.showErrorMessage('No active editor');
             }
             else
-                vscode.window.showErrorMessage('Impossibile trovare la cartella contenente i file compilati');
+                vscode.window.showErrorMessage('The folder containing the compiled files could not be found');
         }
         else
-            vscode.window.showErrorMessage('Impossibile trovare la folder root del progetto');
+            vscode.window.showErrorMessage('Could not find the root folder of the project');
     });
 }
 //# sourceMappingURL=extension.js.map

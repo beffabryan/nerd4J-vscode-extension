@@ -59,6 +59,10 @@ public class FileAnalyzer {
         Field[] declaredFields = loadedClass.getDeclaredFields();
         for (Field field : declaredFields) {
 
+            // check if is static
+            if (Modifier.isStatic(field.getModifiers()))
+                continue;
+
             // check if the field is final
             if (editableField) {
                 if (!Modifier.isFinal(field.getModifiers()))
@@ -89,6 +93,10 @@ public class FileAnalyzer {
             for (Field field : fields) {
 
                 if (isVisibleField(field) && !Modifier.isPrivate(field.getModifiers())) {
+                    
+                    // check if is static
+                    if (Modifier.isStatic(field.getModifiers()))
+                        continue;
 
                     // check if the field is final
                     if (editableField) {
