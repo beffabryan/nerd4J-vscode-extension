@@ -4,6 +4,7 @@ import { exec } from 'child_process';
 import * as path from 'path';
 import { JAVA_COMMAND } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
+import * as fs from 'fs';
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -227,31 +228,38 @@ function getAttributes(editableField: boolean = false): Promise<any> {
 					const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
 					const javaCommand = `${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
 
-					exec(javaCommand, (error, stdout, stderr) => {
-						if (error) {
-							vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
-							return;
-						}
+					//check if the class file exists
+					const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
 
-						if (stderr) {
-							vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
-							return;
-						}
+					if (fs.existsSync(classFilePath)) {
 
-						const output = stdout.trim();
+						exec(javaCommand, (error, stdout, stderr) => {
+							if (error) {
+								vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
+								return;
+							}
 
-						// save output in a list
-						const outputList = output.split("\n");
+							if (stderr) {
+								vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
+								return;
+							}
 
-						//remove all options
-						options = [];
-						className = outputList[0].trim();
-						for (let i = 1; i < outputList.length; i++) {
-							let option = outputList[i].trim();
-							options.push({ label: option, picked: true });
-						}
-						resolve(options);
-					});
+							const output = stdout.trim();
+
+							// save output in a list
+							const outputList = output.split("\n");
+
+							//remove all options
+							options = [];
+							className = outputList[0].trim();
+							for (let i = 1; i < outputList.length; i++) {
+								let option = outputList[i].trim();
+								options.push({ label: option, picked: true });
+							}
+							resolve(options);
+						});
+					} else
+						vscode.window.showErrorMessage('There is no compiled version of this file in the folder ' + fullCompiledPath);
 				} else
 					vscode.window.showErrorMessage('No active editor');
 			} else

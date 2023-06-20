@@ -1,6 +1,5 @@
 import { join } from "path";
 import * as fs from 'fs';
-import * as vscode from 'vscode';
 
 // Maven, Buildr, Grails, Leiningen
 const STANDARD_COMPILED_FOLDER: string = join('target', 'classes');
@@ -30,10 +29,8 @@ export function deleteCustomizedPath(): void {
 export function existingPath(projectPath: string): string {
 
     // check custom path
-    if (customCompiledPath !== '' &&  fs.existsSync(customCompiledPath)){
-        vscode.window.showWarningMessage(`The path ${customCompiledPath} was found`);
+    if (customCompiledPath !== '' &&  fs.existsSync(customCompiledPath))
         return customCompiledPath;
-    }
 
     for (const possiblePath of possiblePaths) {
         const path = join(projectPath, possiblePath);

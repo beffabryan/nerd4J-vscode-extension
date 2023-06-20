@@ -7,6 +7,7 @@ const child_process_1 = require("child_process");
 const path = require("path");
 const config_1 = require("./config");
 const path_1 = require("./path");
+const fs = require("fs");
 let options = [];
 let className = '';
 const printers = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
@@ -176,27 +177,33 @@ function getAttributes(editableField = false) {
                     const packageName = (0, codeGenerator_1.getPackageName)(activeEditor.document.getText());
                     const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
                     const javaCommand = `${config_1.JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
-                    (0, child_process_1.exec)(javaCommand, (error, stdout, stderr) => {
-                        if (error) {
-                            vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
-                            return;
-                        }
-                        if (stderr) {
-                            vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
-                            return;
-                        }
-                        const output = stdout.trim();
-                        // save output in a list
-                        const outputList = output.split("\n");
-                        //remove all options
-                        options = [];
-                        className = outputList[0].trim();
-                        for (let i = 1; i < outputList.length; i++) {
-                            let option = outputList[i].trim();
-                            options.push({ label: option, picked: true });
-                        }
-                        resolve(options);
-                    });
+                    //check if the class file exists
+                    const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
+                    if (fs.existsSync(classFilePath)) {
+                        (0, child_process_1.exec)(javaCommand, (error, stdout, stderr) => {
+                            if (error) {
+                                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
+                                return;
+                            }
+                            if (stderr) {
+                                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
+                                return;
+                            }
+                            const output = stdout.trim();
+                            // save output in a list
+                            const outputList = output.split("\n");
+                            //remove all options
+                            options = [];
+                            className = outputList[0].trim();
+                            for (let i = 1; i < outputList.length; i++) {
+                                let option = outputList[i].trim();
+                                options.push({ label: option, picked: true });
+                            }
+                            resolve(options);
+                        });
+                    }
+                    else
+                        vscode.window.showErrorMessage('There is no compiled version of this file in the folder ' + fullCompiledPath);
                 }
                 else
                     vscode.window.showErrorMessage('No active editor');
