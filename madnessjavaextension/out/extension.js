@@ -57,7 +57,7 @@ function activate(context) {
             }
         }
     });
-    context.subscriptions.push(toString);
+    context.subscriptions.push(withField);
     const allMethods = vscode.commands.registerCommand('madnessjavaextension.generateAllMethods', async () => {
         await getAttributes();
         let selectedOptions = await vscode.window.showQuickPick(options, {
@@ -182,11 +182,11 @@ function getAttributes(editableField = false) {
                     if (fs.existsSync(classFilePath)) {
                         (0, child_process_1.exec)(javaCommand, (error, stdout, stderr) => {
                             if (error) {
-                                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
+                                vscode.window.showErrorMessage(error.message);
                                 return;
                             }
                             if (stderr) {
-                                vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
+                                vscode.window.showErrorMessage(stderr);
                                 return;
                             }
                             const output = stdout.trim();
@@ -195,10 +195,8 @@ function getAttributes(editableField = false) {
                             //remove all options
                             options = [];
                             className = outputList[0].trim();
-                            for (let i = 1; i < outputList.length; i++) {
-                                let option = outputList[i].trim();
-                                options.push({ label: option, picked: true });
-                            }
+                            for (let i = 1; i < outputList.length; i++)
+                                options.push({ label: outputList[i].trim(), picked: true });
                             resolve(options);
                         });
                     }

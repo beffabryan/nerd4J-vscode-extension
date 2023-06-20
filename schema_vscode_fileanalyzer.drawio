@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net" modified="2023-06-20T14:13:31.867Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" etag="vWugpIm2mF1PsMNx-6cg" version="21.2.9" type="device">
+  <diagram name="Pagina-1" id="XWHNyfektqNJGmdPFlE7">
+    <mxGraphModel dx="1781" dy="611" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="lCFTIXQlT46uNuNyOyVy-2" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,c_fill,w_720/https://ubuntu.com/wp-content/uploads/c9f4/visualstudio_code-card.png;" vertex="1" parent="1">
+          <mxGeometry x="30" y="600" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="lCFTIXQlT46uNuNyOyVy-6" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://freepngimg.com/thumb/java/5-2-java-png-clipart-thumb.png;" vertex="1" parent="1">
+          <mxGeometry x="300" y="250" width="200" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="lCFTIXQlT46uNuNyOyVy-7" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,c_fill,w_720/https://ubuntu.com/wp-content/uploads/c9f4/visualstudio_code-card.png;" vertex="1" parent="1">
+          <mxGeometry x="500" y="600" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="lCFTIXQlT46uNuNyOyVy-8" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="lCFTIXQlT46uNuNyOyVy-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="440" y="550" as="sourcePoint" />
+            <mxPoint x="360" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lCFTIXQlT46uNuNyOyVy-9" value="" style="endArrow=none;html=1;rounded=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;startArrow=classic;startFill=1;endFill=0;" edge="1" parent="1" source="lCFTIXQlT46uNuNyOyVy-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="235" y="610" as="sourcePoint" />
+            <mxPoint x="440" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lCFTIXQlT46uNuNyOyVy-10" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;java -cp FileAnalyzerPath FileAnalyzer&lt;br&gt;compiledFolderPath package.class true&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-40" y="500" width="320" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lCFTIXQlT46uNuNyOyVy-11" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;output (stdout)&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="510" y="510" width="200" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

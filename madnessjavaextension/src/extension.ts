@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		}
 	});
-	context.subscriptions.push(toString);
+	context.subscriptions.push(withField);
 
 	const allMethods = vscode.commands.registerCommand('madnessjavaextension.generateAllMethods', async () => {
 		await getAttributes();
@@ -235,12 +235,12 @@ function getAttributes(editableField: boolean = false): Promise<any> {
 
 						exec(javaCommand, (error, stdout, stderr) => {
 							if (error) {
-								vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${error.message}`);
+								vscode.window.showErrorMessage(error.message);
 								return;
 							}
 
 							if (stderr) {
-								vscode.window.showErrorMessage(`Errore durante l'esecuzione del file Java: ${stderr}`);
+								vscode.window.showErrorMessage(stderr);
 								return;
 							}
 
@@ -252,10 +252,9 @@ function getAttributes(editableField: boolean = false): Promise<any> {
 							//remove all options
 							options = [];
 							className = outputList[0].trim();
-							for (let i = 1; i < outputList.length; i++) {
-								let option = outputList[i].trim();
-								options.push({ label: option, picked: true });
-							}
+							for (let i = 1; i < outputList.length; i++)
+								options.push({ label: outputList[i].trim(), picked: true });
+							
 							resolve(options);
 						});
 					} else
