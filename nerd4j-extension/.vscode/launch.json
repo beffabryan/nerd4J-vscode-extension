@@ -10,28 +10,7 @@
 			"name": "FileAnalyzer",
 			"request": "launch",
 			"mainClass": "FileAnalyzer",
-			"projectName": "madnessjavaextension_fd5d6206"
-		},
-		{
-			"type": "java",
-			"name": "FileAnalyzer",
-			"request": "launch",
-			"mainClass": "src.java.FileAnalyzer",
-			"projectName": "madnessjavaextension_fd5d6206"
-		},
-		{
-			"type": "java",
-			"name": "Car",
-			"request": "launch",
-			"mainClass": "Car",
-			"projectName": "madnessjavaextension_fd5d6206"
-		},
-		{
-			"type": "java",
-			"name": "FileAnalyser",
-			"request": "launch",
-			"mainClass": "FileAnalyser",
-			"projectName": "madnessjavaextension_fd5d6206"
+			"projectName": "nerd4j-extension_6e127081"
 		},
 		{
 			"name": "Run Extension",
