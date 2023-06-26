@@ -9,16 +9,16 @@ import * as fs from 'fs';
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
 const printers: string[] = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
+const hashCode = [
+	{ label: 'create hashCode()', picked: true },
+]
 
 export function activate(context: vscode.ExtensionContext) {
-	const hashCode = [
-		{ label: 'create hashCode()', picked: true },
-	]
 
 	//generate toString command
 	const toString = vscode.commands.registerCommand('nerd4j-extension.generateToString', async () => {
 
-		await getAttributes();
+		await getFields();
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes'
@@ -45,12 +45,11 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 	});
-	context.subscriptions.push(toString);
 
 	//generate with field command
 	const withField = vscode.commands.registerCommand('nerd4j-extension.generateWithField', async () => {
 
-		await getAttributes(true);
+		await getFields(true);
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes'
@@ -71,10 +70,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		}
 	});
-	context.subscriptions.push(withField);
 
+	//all methods command
 	const allMethods = vscode.commands.registerCommand('nerd4j-extension.generateAllMethods', async () => {
-		await getAttributes();
+		await getFields();
 		let selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes for toString, equals and hashCode'
@@ -97,7 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 			// select attributres for withField
-			await getAttributes(true);
+			await getFields(true);
 			selectedOptions = await vscode.window.showQuickPick(options, {
 				canPickMany: true,
 				placeHolder: 'Select attributes for withField'
@@ -119,12 +118,11 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 	});
-	context.subscriptions.push(allMethods);
 
 	//generate equals and hashCode command
 	const equals = vscode.commands.registerCommand('nerd4j-extension.generateEquals', async () => {
 
-		await getAttributes();
+		await getFields();
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes'
@@ -153,7 +151,6 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 	});
-	context.subscriptions.push(equals);
 
 	//set compiled folder command
 	const setCustomCompiledFolder = vscode.commands.registerCommand('nerd4j-extension.setCustomCompiledFolder', async () => {
@@ -173,14 +170,12 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	});
-	context.subscriptions.push(setCustomCompiledFolder);
 
 	// delete custom compiled folder command
 	const deleteCustomCompiledFolder = vscode.commands.registerCommand('nerd4j-extension.deleteCustomCompiledFolder', async () => {
 		deleteCustomizedPath();
 		vscode.window.showInformationMessage('Custom compiled folder deleted');
 	});
-	context.subscriptions.push(deleteCustomCompiledFolder);
 
 	//show context menu
 	const showContextMenu = vscode.commands.registerCommand('nerd4j-extension.showContextMenu', async () => {
@@ -198,11 +193,19 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.commands.executeCommand(selectedOption.command);
 
 	});
+	
+	//subscritpions
+	context.subscriptions.push(toString);
+	context.subscriptions.push(withField);
+	context.subscriptions.push(allMethods);
+	context.subscriptions.push(equals);
+	context.subscriptions.push(setCustomCompiledFolder);
+	context.subscriptions.push(deleteCustomCompiledFolder);
 	context.subscriptions.push(showContextMenu);
 }
 
-// get attributes using java reflection
-function getAttributes(editableField: boolean = false): Promise<any> {
+// get fields using java reflection
+function getFields(editableField: boolean = false): Promise<any> {
 	return new Promise((resolve, reject) => {
 
 		// get root path
@@ -254,7 +257,7 @@ function getAttributes(editableField: boolean = false): Promise<any> {
 							className = outputList[0].trim();
 							for (let i = 1; i < outputList.length; i++)
 								options.push({ label: outputList[i].trim(), picked: true });
-							
+
 							resolve(options);
 						});
 					} else
