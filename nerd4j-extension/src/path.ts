@@ -7,7 +7,7 @@ const STANDARD_COMPILED_FOLDER: string = join('target', 'classes');
 // Ant
 const ANT_COMPILED_FOLDER: string = join('build', 'classes');
 
-// custo path
+// custom path
 let customCompiledPath: string = '';
 
 // the order is important
