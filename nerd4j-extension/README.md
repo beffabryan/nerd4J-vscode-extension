@@ -23,5 +23,6 @@ The following "generate" commands are available in the VS Code command palette o
 - <b>generateEquals</b>: generates the equals() and hashCode() methods based on the selected fields.
 - <b>generateAllMethods</b>: generates the toString(), withField(), equals(), and hashCode() methods based on the selected fields.
 
-![Code generation GIF](https://github.com/beffabryan/nerd4J-vscode-extension/blob/dev/img/gif/code_generation.gif)
+![Code generation GIF]
+<img src="[/images/output/video1.gif](https://github.com/beffabryan/nerd4J-vscode-extension/blob/dev/img/gif/code_generation.gif)" width="100%" height="auto"/>
 
