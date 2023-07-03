@@ -17,6 +17,11 @@ The following commands are available in the VS Code command palette:
 - <b>setCustomCompiledFolder</b>: sets a custom path for the folder containing the compiled Java files.
 - <b>deleteCustomCompiledFolder</b>: deletes the custom compiled folder path if it's set.
 
+<br>
+<p align="center">
+<img src="https://github.com/beffabryan/nerd4J-vscode-extension/blob/dev/img/gif/custom_path.gif" width="80%" height="auto" />
+</p>
+
 The following "generate" commands are available in the VS Code command palette or context menu typing "Generate ...":
 - <b>generateToString</b>: generates the toString() method based on the selected fields.
 - <b>generateWithField</b>: generates the withField() methods based on the selected fields.
