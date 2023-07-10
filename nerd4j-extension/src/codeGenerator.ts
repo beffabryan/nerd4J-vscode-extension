@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { EQUALS_SIGNATURE, HASHCODE_SIGNATURE, TO_STRING_SIGNATURE } from './config';
 
 // check if method already exists
 function checkIfMethodAlreadyExists(methodName: string) {
@@ -35,7 +36,7 @@ export function getPackageName(text: string): string {
 export function generateToStringCode(selectedAttributes: string[], selectedType: string): string {
 
 	//check if toString already exists
-	if (checkIfMethodAlreadyExists('public String toString()')) {
+	if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
 		showErrorMessage("The toString() method is already implemented.");
 		return "";
 	}
@@ -61,7 +62,7 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 	let code = '';
 
 	//check if equals already exists
-	if (checkIfMethodAlreadyExists('boolean equals(Object other)'))
+	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE))
 		showErrorMessage("The equals() method is already implemented.");
 	else {
 
@@ -99,7 +100,7 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 export function generateHashCode(selectedAttributes: string[]): string {
 
 	//check if hashCode already exists
-	if (checkIfMethodAlreadyExists('int hashCode()')) {
+	if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
 		showErrorMessage("The hashCode() method is already implemented.");
 		return "";
 	}
