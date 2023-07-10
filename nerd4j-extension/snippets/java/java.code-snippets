@@ -6,7 +6,10 @@
         ],
         "body": [
             "ToString.Printer() {",
-            "\n\t@Override",
+            "\n\t/**",
+            "\t * {@inheritDoc}",
+            "\t */",
+            "\t@Override",
             "\tpublic String apply(ToString.Configuration configuration) {",
             "\n\t\tString separator = \"$1\";",
             "\t\tString firstDelimeter = \"$2\";",

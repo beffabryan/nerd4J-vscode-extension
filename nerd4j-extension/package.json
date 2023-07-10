@@ -4,7 +4,7 @@
   "description": "",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.78.0"
+    "vscode": "^1.64.0"
   },
   "categories": [
     "Snippets",
@@ -51,16 +51,16 @@
     "commands": [
       {
         "command": "nerd4j-extension.showContextMenu",
-        "title": "Generate ...",
+        "title": "Nerd4J: Generate",
         "when": "resourceLangId == 'java'"
       },
       {
         "command": "nerd4j-extension.setCustomCompiledFolder",
-        "title": "Set custom compiled files folder"
+        "title": "Nerd4J: set custom compiled files folder"
       },
       {
         "command": "nerd4j-extension.deleteCustomCompiledFolder",
-        "title": "Delete custom compiled files folder"
+        "title": "Nerd4J: delete custom compiled files folder"
       }
     ],
     "menus": {

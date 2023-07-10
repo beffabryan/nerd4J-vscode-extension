@@ -11,7 +11,7 @@ let className: string = '';
 const printers: string[] = ['likeIntellij', 'likeEclipse', 'likeFunction', 'likeTuple', 'like'];
 const hashCode = [
 	{ label: 'create hashCode()', picked: true },
-]
+];
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -165,8 +165,9 @@ export function activate(context: vscode.ExtensionContext) {
 			if (fileUri && fileUri[0]) {
 				setCustomizedPath(fileUri[0].fsPath);
 				vscode.window.showInformationMessage('Compiled folder set to: ' + fileUri[0].fsPath);
-			} else
+			} else {
 				vscode.window.showErrorMessage('Error: the folder is not valid');
+			}
 		});
 
 	});
@@ -189,8 +190,9 @@ export function activate(context: vscode.ExtensionContext) {
 			{ placeHolder: 'Generate' }
 		);
 
-		if (selectedOption)
+		if (selectedOption) {
 			vscode.commands.executeCommand(selectedOption.command);
+		}
 
 	});
 	
@@ -255,18 +257,23 @@ function getFields(editableField: boolean = false): Promise<any> {
 							//remove all options
 							options = [];
 							className = outputList[0].trim();
-							for (let i = 1; i < outputList.length; i++)
+							for (let i = 1; i < outputList.length; i++) {
 								options.push({ label: outputList[i].trim(), picked: true });
+							}
 
 							resolve(options);
 						});
-					} else
+					} else {
 						vscode.window.showErrorMessage('There is no compiled version of this file in the folder ' + fullCompiledPath);
-				} else
+					}
+				} else {
 					vscode.window.showErrorMessage('No active editor');
-			} else
+				}
+			} else {
 				vscode.window.showErrorMessage('The folder containing the compiled files could not be found');
-		} else
+			}
+		} else {
 			vscode.window.showErrorMessage('Could not find the root folder of the project');
+		}
 	});
 }

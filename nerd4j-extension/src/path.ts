@@ -14,7 +14,7 @@ let customCompiledPath: string = '';
 let possiblePaths: string[] = [
     ANT_COMPILED_FOLDER,
     STANDARD_COMPILED_FOLDER
-]
+];
 
 export function setCustomizedPath(path: string): void {
     customCompiledPath = path;
@@ -29,13 +29,15 @@ export function deleteCustomizedPath(): void {
 export function existingPath(projectPath: string): string {
 
     // check custom path
-    if (customCompiledPath !== '' &&  fs.existsSync(customCompiledPath))
+    if (customCompiledPath !== '' &&  fs.existsSync(customCompiledPath)) {
         return customCompiledPath;
+    }
 
     for (const possiblePath of possiblePaths) {
         const path = join(projectPath, possiblePath);
-        if (fs.existsSync(path))
+        if (fs.existsSync(path)) {
             return path;
+        }
     }
 
     return '';

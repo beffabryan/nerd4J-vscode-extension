@@ -46,15 +46,16 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 		return "";
 	}
 
-	let code = `\n@Override\npublic String toString() {\n\treturn ToString.of(this)`;
+	let code = `\n/**\n * {@inheritDoc}\n */\n@Override\npublic String toString() {\n\treturn ToString.of(this)`;
 
 	for (const attribute of selectedAttributes) {
 		const attributeName = attribute.split(" ")[1]; // get variable name
-		if (attributeName)
+		if (attributeName) {
 			code += `\n\t\t.print("${attributeName}", ${attributeName})`;
+		}
 	}
 
-	code += `\n\t\t.${selectedType}();\n}`;
+	code += `\n\t\t.${selectedType}();\n}\n\n`;
 	showInformationMessage("toString() method generated");
 	return code;
 }
@@ -71,11 +72,12 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 	let code = '';
 
 	//check if equals already exists
-	if (checkIfMethodAlreadyExists('boolean equals(Object other)'))
+	if (checkIfMethodAlreadyExists('boolean equals(Object other)')) {
 		showErrorMessage("The equals() method is already implemented.");
+	}
 	else {
 
-		code += `\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,`;
+		code += `\n/**\n * {@inheritDoc}\n */\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,`;
 		for (let i = 0; i < selectedAttributes.length; i++) {
 			const attributeName = selectedAttributes[i].split(" ")[1];
 
@@ -83,17 +85,19 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 				code += `\n\t\to -> o.${attributeName}`;
 
 				//check index
-				if (i != selectedAttributes.length - 1)
+				if (i !== selectedAttributes.length - 1) {
 					code += ', ';
+				}
 			}
 		}
 
-		code += `\n\t);\n}`
+		code += `\n\t);\n}\n`;
 		showInformationMessage("equals() method generated");
 	}
 
-	if (createHashCode)
+	if (createHashCode) {
 		code += generateHashCode(selectedAttributes);
+	}
 
 	return code;
 }
@@ -114,7 +118,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 		return "";
 	}
 
-	let code = `\n\n@Override\npublic int hashCode() {\n\treturn Hashcode.of(`;
+	let code = `\n/**\n * {@inheritDoc}\n */\n@Override\npublic int hashCode() {\n\treturn Hashcode.of(`;
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
 		const attributeName = selectedAttributes[i].split(" ")[1];
@@ -123,12 +127,13 @@ export function generateHashCode(selectedAttributes: string[]): string {
 			code += `${attributeName}`;
 
 			//check index
-			if (i != selectedAttributes.length - 1)
+			if (i !== selectedAttributes.length - 1) {
 				code += ', ';
+			}
 		}
 	}
 
-	code += `);\n}`;
+	code += `);\n}\n`;
 	showInformationMessage("hashCode() method generated");
 
 	return code;
@@ -150,10 +155,12 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 			const methodSignature = `public ${className} ${methodName}(${attributeType} value)`;
 
 			//check if method already exists
-			if (!checkIfMethodAlreadyExists(methodSignature))
+			if (!checkIfMethodAlreadyExists(methodSignature)) {
 				code += `\n${methodSignature} {\n\tthis.${attributeName} = value;\n\treturn this;\n}\n`;
-			else
+			}
+			else {
 				showWarningMessage(`Method ${methodName} already exists`);
+			}
 		}
 	}
 	showInformationMessage("withField() methods generated");
