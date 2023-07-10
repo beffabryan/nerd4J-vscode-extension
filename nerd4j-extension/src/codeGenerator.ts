@@ -40,22 +40,17 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 		return "";
 	}
 
-	//check if there are selected attributes
-	if (selectedAttributes.length === 0) {
-		vscode.window.showErrorMessage("No attribute selected");
-		return "";
-	}
-
-	let code = `\n/**\n * {@inheritDoc}\n */\n@Override\npublic String toString() {\n\treturn ToString.of(this)`;
+	const tabs = insertTab(getIndentation());
+	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public String toString() {\n${tabs}\treturn ToString.of(this)`;
 
 	for (const attribute of selectedAttributes) {
 		const attributeName = attribute.split(" ")[1]; // get variable name
 		if (attributeName) {
-			code += `\n\t\t.print("${attributeName}", ${attributeName})`;
+			code += `\n${tabs}\t\t.print("${attributeName}", ${attributeName})`;
 		}
 	}
 
-	code += `\n\t\t.${selectedType}();\n}\n\n`;
+	code += `\n${tabs}\t\t.${selectedType}();\n${tabs}}\n`;
 	showInformationMessage("toString() method generated");
 	return code;
 }
@@ -63,35 +58,33 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 // generate equals and hadhcode method
 export function generateEquals(selectedAttributes: string[], createHashCode: boolean = false): string {
 
-	//check if there are selected attributes
-	if (selectedAttributes.length === 0) {
-		showErrorMessage("No attribute selected");
-		return "";
-	}
-
 	let code = '';
 
 	//check if equals already exists
-	if (checkIfMethodAlreadyExists('boolean equals(Object other)')) {
+	if (checkIfMethodAlreadyExists('boolean equals(Object other)'))
 		showErrorMessage("The equals() method is already implemented.");
-	}
 	else {
 
-		code += `\n/**\n * {@inheritDoc}\n */\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,`;
-		for (let i = 0; i < selectedAttributes.length; i++) {
-			const attributeName = selectedAttributes[i].split(" ")[1];
+		const tabs = insertTab(getIndentation());
+		code += `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
+		if (selectedAttributes.length === 0)
+			code += `);\n${tabs}}\n`;
+		else {
+			code += ',';
+			for (let i = 0; i < selectedAttributes.length; i++) {
+				const attributeName = selectedAttributes[i].split(" ")[1];
 
-			if (attributeName) {
-				code += `\n\t\to -> o.${attributeName}`;
+				if (attributeName) {
+					code += `\n${tabs}\t\to -> o.${attributeName}`;
 
-				//check index
-				if (i !== selectedAttributes.length - 1) {
-					code += ', ';
+					//check index
+					if (i !== selectedAttributes.length - 1)
+						code += ', ';
 				}
 			}
-		}
 
-		code += `\n\t);\n}\n`;
+			code += `\n${tabs}\t);\n${tabs}}\n`;
+		}
 		showInformationMessage("equals() method generated");
 	}
 
@@ -102,15 +95,8 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 	return code;
 }
 
-
 // generate hashCode method
 export function generateHashCode(selectedAttributes: string[]): string {
-
-	//check if there are selected attributes
-	if (selectedAttributes.length === 0) {
-		showErrorMessage("No attribute selected");
-		return "";
-	}
 
 	//check if hashCode already exists
 	if (checkIfMethodAlreadyExists('int hashCode()')) {
@@ -118,7 +104,8 @@ export function generateHashCode(selectedAttributes: string[]): string {
 		return "";
 	}
 
-	let code = `\n/**\n * {@inheritDoc}\n */\n@Override\npublic int hashCode() {\n\treturn Hashcode.of(`;
+	const tabs = insertTab(getIndentation());
+	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public int hashCode() {\n${tabs}\treturn Hashcode.of(`;
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
 		const attributeName = selectedAttributes[i].split(" ")[1];
@@ -133,7 +120,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 		}
 	}
 
-	code += `);\n}\n`;
+	code += `);\n${tabs}}\n`;
 	showInformationMessage("hashCode() method generated");
 
 	return code;
@@ -150,13 +137,16 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 		const attributeName = selectedAttributes[i].split(" ")[1];
 
 		if (attributeName) {
+
+			const tabs = insertTab(getIndentation());
+
 			//set first letter to upper case
 			const methodName = 'with' + attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
 			const methodSignature = `public ${className} ${methodName}(${attributeType} value)`;
 
 			//check if method already exists
 			if (!checkIfMethodAlreadyExists(methodSignature)) {
-				code += `\n${methodSignature} {\n\tthis.${attributeName} = value;\n\treturn this;\n}\n`;
+				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = value;\n${tabs}\treturn this;\n${tabs}}\n`;
 			}
 			else {
 				showWarningMessage(`Method ${methodName} already exists`);
@@ -165,4 +155,32 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 	}
 	showInformationMessage("withField() methods generated");
 	return code;
+}
+
+function insertTab(times: number): string {
+	const character = '\t';
+	return character.repeat(times);
+}
+
+function getIndentation(): number {
+
+	const editor = vscode.window.activeTextEditor;
+
+	let indentation = 0;
+	if (editor) {
+
+		const document = editor?.document;
+		const currentPosition = editor?.selection.active;
+		const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
+		const textUntilCursor = document?.getText(range);
+
+
+		for (let i = 0; i < textUntilCursor?.length; i++) {
+			if (textUntilCursor[i] === '{')
+				indentation++;
+			else if (textUntilCursor[i] === '}')
+				indentation--;
+		}
+	}
+	return indentation;
 }

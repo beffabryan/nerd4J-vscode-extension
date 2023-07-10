@@ -48,7 +48,7 @@
     "commands": [
       {
         "command": "nerd4j-extension.showContextMenu",
-        "title": "Nerd4J: Generate",
+        "title": "Nerd4J: generate",
         "when": "resourceLangId == 'java'"
       },
       {

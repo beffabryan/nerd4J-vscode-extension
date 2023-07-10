@@ -37,8 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
-					const selection = editor.selection;
 
+					const selection = editor.selection;
 					editor.edit(editBuilder => {
 						// add import if is not present
 						if (!checkIfImportExists(TO_STRING_IMPORT))
@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const equals = generateEquals(selectedAttributes);
 			const hashCode = generateHashCode(selectedAttributes);
 
-			let code = toString + '\n\n' + equals + '\n\n' + hashCode;
+			let code = toString + equals + hashCode;
 
 
 			// select attributres for withField
