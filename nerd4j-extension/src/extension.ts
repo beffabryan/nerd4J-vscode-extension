@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { JAVA_COMMAND } from './config';
+import { EQUALS_IMPORT, HASHCODE_IMPORT, JAVA_COMMAND, TO_STRING_IMPORT } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 
@@ -38,7 +38,11 @@ export function activate(context: vscode.ExtensionContext) {
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 					const selection = editor.selection;
+
 					editor.edit(editBuilder => {
+						// add import if is not present
+						if (!checkIfImportExists(TO_STRING_IMPORT))
+							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						editBuilder.insert(selection.end, toStringCode);
 					});
 				}
@@ -63,6 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {
 				const selection = editor.selection;
+
 				editor.edit(editBuilder => {
 					editBuilder.insert(selection.end, withFieldCode);
 				});
@@ -144,7 +149,14 @@ export function activate(context: vscode.ExtensionContext) {
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 					const selection = editor.selection;
+
 					editor.edit(editBuilder => {
+						// add imports if is not present
+						if (!checkIfImportExists(EQUALS_IMPORT))
+							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
+						if (!checkIfImportExists(HASHCODE_IMPORT) && createHashCode)
+							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
+
 						editBuilder.insert(selection.end, equalsCode);
 					});
 				}
@@ -195,7 +207,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 	});
-	
+
 	//subscritpions
 	context.subscriptions.push(toString);
 	context.subscriptions.push(withField);
@@ -276,4 +288,12 @@ function getFields(editableField: boolean = false): Promise<any> {
 			vscode.window.showErrorMessage('Could not find the root folder of the project');
 		}
 	});
+}
+
+function checkIfImportExists(code: string) {
+	const editor = vscode.window.activeTextEditor;
+	const editorText = editor?.document.getText();
+
+	// check if to string exitst
+	return editorText?.includes(code);
 }

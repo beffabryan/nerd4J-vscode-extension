@@ -10,9 +10,6 @@
     "Snippets",
     "Programming Languages"
   ],
-  "extensionDependencies": [
-    "vscjava.vscode-java-pack"
-  ],
   "activationEvents": [
     "onContextMenu"
   ],
