@@ -11,12 +11,17 @@ function checkIfMethodAlreadyExists(methodName: string) {
 }
 
 // show error message
-function showErrorMessage(message: string) {
-	vscode.window.showErrorMessage(message);
+function showErrorMessage(message: string, quickFixes: any) {
+		//add all quick fixes
+		vscode.window.showErrorMessage(message, 
+			{modal: false}, 
+			...quickFixes);
 }
 
 // show warning message
 function showWarningMessage(message: string) {
+	
+	//add all quick fixes
 	vscode.window.showWarningMessage(message);
 }
 
@@ -37,7 +42,7 @@ export function generateToStringCode(selectedAttributes: string[], selectedType:
 
 	//check if toString already exists
 	if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
-		showErrorMessage("The toString() method is already implemented.");
+		showErrorMessage("The toString() method is already implemented.", []);
 		return "";
 	}
 
@@ -63,7 +68,7 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 
 	//check if equals already exists
 	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE))
-		showErrorMessage("The equals() method is already implemented.");
+		showErrorMessage("The equals() method is already implemented.", []);
 	else {
 
 		const tabs = insertTab(getIndentation());
@@ -101,7 +106,7 @@ export function generateHashCode(selectedAttributes: string[]): string {
 
 	//check if hashCode already exists
 	if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
-		showErrorMessage("The hashCode() method is already implemented.");
+		showErrorMessage("The hashCode() method is already implemented.", []);
 		return "";
 	}
 

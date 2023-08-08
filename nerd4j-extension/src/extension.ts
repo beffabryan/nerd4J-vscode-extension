@@ -178,7 +178,13 @@ export function activate(context: vscode.ExtensionContext) {
 				setCustomizedPath(fileUri[0].fsPath);
 				vscode.window.showInformationMessage('Compiled folder set to: ' + fileUri[0].fsPath);
 			} else {
-				vscode.window.showErrorMessage('Error: the folder is not valid');
+
+				const quickFix = { title: 'Set new compiled folder', command: 'nerd4j-extension.setCustomCompiledFolder' };
+				vscode.window.showErrorMessage('Error: the folder is not valid',
+					quickFix).then(selection => {
+						if (selection)
+							vscode.commands.executeCommand(selection.command);
+					});
 			}
 		});
 
@@ -282,7 +288,11 @@ function getFields(editableField: boolean = false): Promise<any> {
 					vscode.window.showErrorMessage('No active editor');
 				}
 			} else {
-				vscode.window.showErrorMessage('The folder containing the compiled files could not be found');
+				const quickFix = { title: 'Set new compiled folder', command: 'nerd4j-extension.setCustomCompiledFolder' };
+				vscode.window.showErrorMessage('The folder containing the compiled files could not be found', quickFix).then(selection => {
+					if (selection)
+						vscode.commands.executeCommand(selection.command);
+				});
 			}
 		} else {
 			vscode.window.showErrorMessage('Could not find the root folder of the project');
