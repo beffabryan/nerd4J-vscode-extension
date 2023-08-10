@@ -14,7 +14,7 @@ const hashCode = [
 	{ label: 'create hashCode()', picked: true },
 ];
 
-async function showDialog(canSelectMany: boolean, openLabel: string, title: string, canSelectFolders: boolean): Promise<string | undefined> {
+function showDialog(canSelectMany: boolean, openLabel: string, title: string, canSelectFolders: boolean): Promise<string | undefined> {
 	return new Promise((resolve) => {
 		const jdkMainFolder: vscode.OpenDialogOptions = {
 			canSelectMany: canSelectMany,
@@ -31,6 +31,20 @@ async function showDialog(canSelectMany: boolean, openLabel: string, title: stri
 
 		});
 	});
+}
+
+function getJDK() {
+	const currentJDK = getCurrentJDK();
+	if (!currentJDK) {
+		vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`,
+			jdkQuickFix).then(selection => {
+				if (selection)
+					vscode.commands.executeCommand(selection.command);
+			});
+		return;
+	}
+
+	return currentJDK;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -56,19 +70,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	//generate toString command
 	const toString = vscode.commands.registerCommand('nerd4j-extension.generateToString', async () => {
-
-		//check jdk version
-		const currentJDK = getCurrentJDK();
-		if (currentJDK)
-			vscode.window.showInformationMessage(`Using JDK ${currentJDK}`);
-		else {
-
-			vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`,
-				jdkQuickFix).then(selection => {
-					if (selection)
-						vscode.commands.executeCommand(selection.command);
-				});
-		}
 
 		await getFields();
 		const selectedOptions = await vscode.window.showQuickPick(options, {
@@ -260,6 +261,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	//subscritpions
+	context.subscriptions.push(setJDKWorkspace);
 	context.subscriptions.push(toString);
 	context.subscriptions.push(withField);
 	context.subscriptions.push(allMethods);
@@ -287,6 +289,11 @@ function getFields(editableField: boolean = false): Promise<any> {
 
 				if (activeEditor) {
 
+					//check jdk version
+					const jdk = getJDK();
+					if (!jdk)
+						return;
+
 					// Get the class name of the active file
 					const fileUri = activeEditor.document.uri;
 					const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
@@ -294,7 +301,7 @@ function getFields(editableField: boolean = false): Promise<any> {
 					// get package name
 					const packageName = getPackageName(activeEditor.document.getText());
 					const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
-					const javaCommand = `${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
+					const javaCommand = `${jdk}\\bin\\${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
 
 					//check if the class file exists
 					const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
@@ -302,13 +309,12 @@ function getFields(editableField: boolean = false): Promise<any> {
 					if (fs.existsSync(classFilePath)) {
 
 						exec(javaCommand, (error, stdout, stderr) => {
-							if (error) {
-								vscode.window.showErrorMessage(error.message);
-								return;
-							}
-
-							if (stderr) {
-								vscode.window.showErrorMessage(stderr);
+							if (error || stderr) {
+								vscode.window.showErrorMessage("jdk main folder not found. Check if the jdk is correctly set",
+									jdkQuickFix).then(selection => {
+										if (selection)
+											vscode.commands.executeCommand(selection.command);
+									});
 								return;
 							}
 
