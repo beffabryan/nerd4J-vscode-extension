@@ -58,6 +58,10 @@
       {
         "command": "nerd4j-extension.deleteCustomCompiledFolder",
         "title": "Nerd4J: delete custom compiled files folder"
+      },
+      {
+        "command": "nerd4j-extension.setWorkspaceJDK",
+        "title": "Nerd4J: set workspace jdk main folder"
       }
     ],
     "menus": {

@@ -5,6 +5,7 @@ import * as path from 'path';
 import { EQUALS_IMPORT, HASHCODE_IMPORT, JAVA_COMMAND, TO_STRING_IMPORT } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
+import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -13,10 +14,56 @@ const hashCode = [
 	{ label: 'create hashCode()', picked: true },
 ];
 
+async function showDialog(canSelectMany: boolean, openLabel: string, title: string, canSelectFolders: boolean): Promise<string | undefined> {
+	return new Promise((resolve) => {
+		const jdkMainFolder: vscode.OpenDialogOptions = {
+			canSelectMany: canSelectMany,
+			openLabel: openLabel,
+			title: title,
+			canSelectFolders: canSelectFolders
+		};
+
+		vscode.window.showOpenDialog(jdkMainFolder).then(fileUri => {
+			if (fileUri && fileUri[0])
+				resolve(fileUri[0]?.fsPath);
+			else
+				resolve(undefined);
+
+		});
+	});
+}
+
 export function activate(context: vscode.ExtensionContext) {
+
+	//set workspace jdk command
+	const setJDKWorkspace = vscode.commands.registerCommand('nerd4j-extension.setWorkspaceJDK', async () => {
+
+		const jdkMainFolder = await showDialog(false, 'Select', 'Select workspace jdk main folder', true)
+
+		if (jdkMainFolder) {
+			setWorkspaceJDK(jdkMainFolder);
+			vscode.window.showInformationMessage('workspace jdk has been set to: ' + jdkMainFolder);
+		} else {
+
+			const quickFix = { title: 'Set workspace jdk main folder', command: 'nerd4j-extension.setWorkspaceJDK' };
+			vscode.window.showErrorMessage('Error: the selected folder is not valid',
+				quickFix).then(selection => {
+					if (selection)
+
+						vscode.commands.executeCommand(selection.command);
+				});
+		}
+	});
 
 	//generate toString command
 	const toString = vscode.commands.registerCommand('nerd4j-extension.generateToString', async () => {
+
+		//check jdk version
+		const currentJDK = getCurrentJDK();
+		if (currentJDK)
+			vscode.window.showInformationMessage(`Using JDK ${currentJDK}`);
+		else
+			vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`, ...jdkQuickFix);
 
 		await getFields();
 		const selectedOptions = await vscode.window.showQuickPick(options, {
@@ -166,28 +213,21 @@ export function activate(context: vscode.ExtensionContext) {
 
 	//set compiled folder command
 	const setCustomCompiledFolder = vscode.commands.registerCommand('nerd4j-extension.setCustomCompiledFolder', async () => {
-		const compiledFolderOptions: vscode.OpenDialogOptions = {
-			canSelectMany: false,
-			openLabel: 'Select folder',
-			title: 'Select compiled folder',
-			canSelectFolders: true
-		};
 
-		vscode.window.showOpenDialog(compiledFolderOptions).then(fileUri => {
-			if (fileUri && fileUri[0]) {
-				setCustomizedPath(fileUri[0].fsPath);
-				vscode.window.showInformationMessage('Compiled folder set to: ' + fileUri[0].fsPath);
-			} else {
+		const compiledFolder = await showDialog(false, 'Select folder', 'Select compiled folder', true);
 
-				const quickFix = { title: 'Set new compiled folder', command: 'nerd4j-extension.setCustomCompiledFolder' };
-				vscode.window.showErrorMessage('Error: the folder is not valid',
-					quickFix).then(selection => {
-						if (selection)
-							vscode.commands.executeCommand(selection.command);
-					});
-			}
-		});
+		if (compiledFolder) {
+			setCustomizedPath(compiledFolder);
+			vscode.window.showInformationMessage('Compiled folder set to: ' + compiledFolder);
+		} else {
 
+			const quickFix = { title: 'Set new compiled folder', command: 'nerd4j-extension.setCustomCompiledFolder' };
+			vscode.window.showErrorMessage('Error: the folder is not valid',
+				quickFix).then(selection => {
+					if (selection)
+						vscode.commands.executeCommand(selection.command);
+				});
+		}
 	});
 
 	// delete custom compiled folder command
