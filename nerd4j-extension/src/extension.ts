@@ -49,7 +49,6 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage('Error: the selected folder is not valid',
 				quickFix).then(selection => {
 					if (selection)
-
 						vscode.commands.executeCommand(selection.command);
 				});
 		}
@@ -62,8 +61,14 @@ export function activate(context: vscode.ExtensionContext) {
 		const currentJDK = getCurrentJDK();
 		if (currentJDK)
 			vscode.window.showInformationMessage(`Using JDK ${currentJDK}`);
-		else
-			vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`, ...jdkQuickFix);
+		else {
+
+			vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`,
+				jdkQuickFix).then(selection => {
+					if (selection)
+						vscode.commands.executeCommand(selection.command);
+				});
+		}
 
 		await getFields();
 		const selectedOptions = await vscode.window.showQuickPick(options, {
