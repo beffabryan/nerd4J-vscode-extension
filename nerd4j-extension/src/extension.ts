@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, HASHCODE_IMPORT, JAVA_COMMAND, TO_STRING_IMPORT } from './config';
+import { EQUALS_IMPORT, HASHCODE_IMPORT, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
@@ -66,6 +66,28 @@ export function activate(context: vscode.ExtensionContext) {
 						vscode.commands.executeCommand(selection.command);
 				});
 		}
+	});
+
+	//recompile fileanalyzer command
+	const recompileFileAnalyzer = vscode.commands.registerCommand('nerd4j-extension.recompileFileAnalyzer', async () => {
+
+		const jdk = getJDK();
+		if (!jdk)
+			return;
+
+		const javacCommand = `${jdk}\\bin\\${JAVAC_COMMAND}`;
+
+		exec(javacCommand, (error, stdout, stderr) => {
+			if (error || stderr) {
+				vscode.window.showErrorMessage(`${stderr} ${error}`,
+					jdkQuickFix).then(selection => {
+						if (selection)
+							vscode.commands.executeCommand(selection.command);
+					});
+				return;
+			} else
+				vscode.window.showInformationMessage("Compilation successful");
+		});
 	});
 
 	//generate toString command
