@@ -4,12 +4,12 @@ const javaHome = 'java.jdt.ls.java.home';
 export const jdkQuickFix = { title: 'Set workspace JDK', command: 'nerd4j-extension.setWorkspaceJDK' };
 
 export function getCurrentJDK(): string | null {
-    const jdkPath = `${vscode.workspace.getConfiguration().get(javaHome)}`
+    const jdkPath = vscode.workspace.getConfiguration().get(javaHome);
 
-    if (!jdkPath)
+    /*if (!jdkPath)
         return null;
 
-    //escape path wiwth spaces
+    escape path wiwth spaces
     let jdkParts = jdkPath?.split('\\');
     let escapedPath = '';
     if (jdkParts.length > 0) {
@@ -20,7 +20,9 @@ export function getCurrentJDK(): string | null {
 
     vscode.window.showInformationMessage(`${escapedPath}`);
 
-    return escapedPath;
+    return escapedPath;*/
+
+    return jdkPath ? `${jdkPath}` : null;
 }
 
 export function setWorkspaceJDK(jdkPath: string) {

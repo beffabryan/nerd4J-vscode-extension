@@ -68,6 +68,24 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	//set workspace jdk command
+	const checkCurrentJDK = vscode.commands.registerCommand('nerd4j-extension.checkCurrentJDK', async () => {
+
+		const jdk = getCurrentJDK();
+
+		if (jdk !== null) 
+			vscode.window.showInformationMessage('Current jdk version: ' + jdk);
+		else {
+
+			const quickFix = { title: 'Set workspace jdk main folder', command: 'nerd4j-extension.setWorkspaceJDK' };
+			vscode.window.showWarningMessage('There is no jdk version set for this workspace',
+				quickFix).then(selection => {
+					if (selection)
+						vscode.commands.executeCommand(selection.command);
+				});
+		}
+	});
+
 	//recompile fileanalyzer command
 	const recompileFileAnalyzer = vscode.commands.registerCommand('nerd4j-extension.recompileFileAnalyzer', async () => {
 
@@ -284,6 +302,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	//subscritpions
 	context.subscriptions.push(setJDKWorkspace);
+	context.subscriptions.push(checkCurrentJDK);
 	context.subscriptions.push(toString);
 	context.subscriptions.push(withField);
 	context.subscriptions.push(allMethods);

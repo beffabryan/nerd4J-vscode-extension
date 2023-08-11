@@ -66,6 +66,10 @@
       {
         "command": "nerd4j-extension.recompileFileAnalyzer",
         "title": "Nerd4J: recompile file analyzer class"
+      },
+      {
+        "command": "nerd4j-extension.checkCurrentJDK",
+        "title": "Nerd4J: check jdk version"
       }
     ],
     "menus": {
