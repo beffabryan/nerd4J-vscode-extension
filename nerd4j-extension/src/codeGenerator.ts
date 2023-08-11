@@ -12,15 +12,15 @@ function checkIfMethodAlreadyExists(methodName: string) {
 
 // show error message
 function showErrorMessage(message: string, quickFixes: any) {
-		//add all quick fixes
-		vscode.window.showErrorMessage(message, 
-			{modal: false}, 
-			...quickFixes);
+	//add all quick fixes
+	vscode.window.showErrorMessage(message,
+		{ modal: false },
+		...quickFixes);
 }
 
 // show warning message
 function showWarningMessage(message: string) {
-	
+
 	//add all quick fixes
 	vscode.window.showWarningMessage(message);
 }
@@ -67,15 +67,15 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 	let code = '';
 
 	//check if equals already exists
-	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE))
+	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
 		showErrorMessage("The equals() method is already implemented.", []);
-	else {
+	} else {
 
 		const tabs = insertTab(getIndentation());
 		code += `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
-		if (selectedAttributes.length === 0)
+		if (selectedAttributes.length === 0) {
 			code += `);\n${tabs}}\n`;
-		else {
+		} else {
 			code += ',';
 			for (let i = 0; i < selectedAttributes.length; i++) {
 				const attributeName = selectedAttributes[i].split(" ")[1];
@@ -84,8 +84,9 @@ export function generateEquals(selectedAttributes: string[], createHashCode: boo
 					code += `\n${tabs}\t\to -> o.${attributeName}`;
 
 					//check index
-					if (i !== selectedAttributes.length - 1)
+					if (i !== selectedAttributes.length - 1) {
 						code += ', ';
+					}
 				}
 			}
 
@@ -182,10 +183,11 @@ function getIndentation(): number {
 
 
 		for (let i = 0; i < textUntilCursor?.length; i++) {
-			if (textUntilCursor[i] === '{')
+			if (textUntilCursor[i] === '{') {
 				indentation++;
-			else if (textUntilCursor[i] === '}')
+			} else if (textUntilCursor[i] === '}') {
 				indentation--;
+			}
 		}
 	}
 	return indentation;

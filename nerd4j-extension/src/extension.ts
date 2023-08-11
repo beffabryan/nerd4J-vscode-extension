@@ -24,11 +24,11 @@ function showDialog(canSelectMany: boolean, openLabel: string, title: string, ca
 		};
 
 		vscode.window.showOpenDialog(jdkMainFolder).then(fileUri => {
-			if (fileUri && fileUri[0])
+			if (fileUri && fileUri[0]) {
 				resolve(fileUri[0]?.fsPath);
-			else
+			} else {
 				resolve(undefined);
-
+			}
 		});
 	});
 }
@@ -38,8 +38,9 @@ function getJDK() {
 	if (!currentJDK) {
 		vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`,
 			jdkQuickFix).then(selection => {
-				if (selection)
+				if (selection) {
 					vscode.commands.executeCommand(selection.command);
+				}
 			});
 		return;
 	}
@@ -52,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//set workspace jdk command
 	const setJDKWorkspace = vscode.commands.registerCommand('nerd4j-extension.setWorkspaceJDK', async () => {
 
-		const jdkMainFolder = await showDialog(false, 'Select', 'Select workspace jdk main folder', true)
+		const jdkMainFolder = await showDialog(false, 'Select', 'Select workspace jdk main folder', true);
 
 		if (jdkMainFolder) {
 			setWorkspaceJDK(jdkMainFolder);
@@ -62,8 +63,9 @@ export function activate(context: vscode.ExtensionContext) {
 			const quickFix = { title: 'Set workspace jdk main folder', command: 'nerd4j-extension.setWorkspaceJDK' };
 			vscode.window.showErrorMessage('Error: the selected folder is not valid',
 				quickFix).then(selection => {
-					if (selection)
+					if (selection) {
 						vscode.commands.executeCommand(selection.command);
+					}
 				});
 		}
 	});
@@ -73,15 +75,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 		const jdk = getCurrentJDK();
 
-		if (jdk !== null) 
+		if (jdk) {
 			vscode.window.showInformationMessage('Current jdk version: ' + jdk);
-		else {
+		} else {
 
 			const quickFix = { title: 'Set workspace jdk main folder', command: 'nerd4j-extension.setWorkspaceJDK' };
 			vscode.window.showWarningMessage('There is no jdk version set for this workspace',
 				quickFix).then(selection => {
-					if (selection)
+					if (selection) {
 						vscode.commands.executeCommand(selection.command);
+					}
 				});
 		}
 	});
@@ -90,8 +93,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const recompileFileAnalyzer = vscode.commands.registerCommand('nerd4j-extension.recompileFileAnalyzer', async () => {
 
 		const jdk = getJDK();
-		if (!jdk)
+		if (!jdk) {
 			return;
+		}
 
 		const javacCommand = `${jdk}\\bin\\${JAVAC_COMMAND}`;
 
@@ -99,12 +103,14 @@ export function activate(context: vscode.ExtensionContext) {
 			if (error || stderr) {
 				vscode.window.showErrorMessage(`${stderr} ${error}`,
 					jdkQuickFix).then(selection => {
-						if (selection)
+						if (selection) {
 							vscode.commands.executeCommand(selection.command);
+						}
 					});
 				return;
-			} else
+			} else {
 				vscode.window.showInformationMessage("Compilation successful");
+			}
 		});
 	});
 
@@ -134,8 +140,10 @@ export function activate(context: vscode.ExtensionContext) {
 					const selection = editor.selection;
 					editor.edit(editBuilder => {
 						// add import if is not present
-						if (!checkIfImportExists(TO_STRING_IMPORT))
+						if (!checkIfImportExists(TO_STRING_IMPORT)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
+						}
+
 						editBuilder.insert(selection.end, toStringCode);
 					});
 				}
@@ -245,11 +253,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 					editor.edit(editBuilder => {
 						// add imports if is not present
-						if (!checkIfImportExists(EQUALS_IMPORT))
+						if (!checkIfImportExists(EQUALS_IMPORT)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
-						if (!checkIfImportExists(HASHCODE_IMPORT) && createHashCode)
+						}
+						if (!checkIfImportExists(HASHCODE_IMPORT) && createHashCode) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
-
+						}
 						editBuilder.insert(selection.end, equalsCode);
 					});
 				}
@@ -270,8 +279,9 @@ export function activate(context: vscode.ExtensionContext) {
 			const quickFix = { title: 'Set new compiled folder', command: 'nerd4j-extension.setCustomCompiledFolder' };
 			vscode.window.showErrorMessage('Error: the folder is not valid',
 				quickFix).then(selection => {
-					if (selection)
+					if (selection) {
 						vscode.commands.executeCommand(selection.command);
+					}
 				});
 		}
 	});
@@ -332,8 +342,9 @@ function getFields(editableField: boolean = false): Promise<any> {
 
 					//check jdk version
 					const jdk = getJDK();
-					if (!jdk)
+					if (!jdk) {
 						return;
+					}
 
 					// Get the class name of the active file
 					const fileUri = activeEditor.document.uri;
@@ -353,8 +364,9 @@ function getFields(editableField: boolean = false): Promise<any> {
 							if (error || stderr) {
 								vscode.window.showErrorMessage("jdk main folder not found. Check if the jdk is correctly set",
 									jdkQuickFix).then(selection => {
-										if (selection)
+										if (selection) {
 											vscode.commands.executeCommand(selection.command);
+										}
 									});
 								return;
 							}
@@ -382,8 +394,9 @@ function getFields(editableField: boolean = false): Promise<any> {
 			} else {
 				const quickFix = { title: 'Set new compiled folder', command: 'nerd4j-extension.setCustomCompiledFolder' };
 				vscode.window.showErrorMessage('The folder containing the compiled files could not be found', quickFix).then(selection => {
-					if (selection)
+					if (selection) {
 						vscode.commands.executeCommand(selection.command);
+					}
 				});
 			}
 		} else {
