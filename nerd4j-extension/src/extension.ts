@@ -313,6 +313,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//subscritpions
 	context.subscriptions.push(setJDKWorkspace);
 	context.subscriptions.push(checkCurrentJDK);
+	context.subscriptions.push(recompileFileAnalyzer);
 	context.subscriptions.push(toString);
 	context.subscriptions.push(withField);
 	context.subscriptions.push(allMethods);
@@ -349,6 +350,11 @@ function getFields(editableField: boolean = false): Promise<any> {
 					// Get the class name of the active file
 					const fileUri = activeEditor.document.uri;
 					const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
+					
+					if ((fileUri.fsPath).split('.')[1] !== 'java'){
+						vscode.window.showErrorMessage("The active file is not a java file");
+						return;
+					}
 
 					// get package name
 					const packageName = getPackageName(activeEditor.document.getText());
