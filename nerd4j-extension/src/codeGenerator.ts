@@ -37,6 +37,45 @@ export function getPackageName(text: string): string {
 	return match ? match[1] : "";
 }
 
+// check if there is a javadoc comment
+function checkJavadocComment(oldCodeIndex: number) : number {
+	 
+	const editor = vscode.window.activeTextEditor;
+	const editorText = editor?.document.getText();
+
+	vscode.window.showInformationMessage("index: " +  oldCodeIndex);
+
+	if (!editorText) {
+		return oldCodeIndex;
+	}
+
+	let index = oldCodeIndex;
+	let ignoreChar = false;
+
+	for (index; index >= 0; index--) {
+
+		if (editorText.charAt(index) === '/') {
+			if (editorText.charAt(index - 1) === '*') {
+				ignoreChar = true;
+			}
+		}
+
+		if (!ignoreChar && (editorText.charAt(index) === ';' || editorText.charAt(index) === '}' || editorText.charAt(index) === '{')) {
+			return oldCodeIndex;
+		}
+
+		if (editorText.charAt(index) === '*') {
+			if (editorText.charAt(index - 1) === '*') {
+				if (editorText.charAt(index - 2) === '/') {
+					return index - 2;
+				}
+			}
+		}
+	}
+
+	return oldCodeIndex;
+}
+
 // generate toString method
 export async function generateToStringCode(selectedAttributes: string[], selectedType: string) : Promise<string> {
 
@@ -51,26 +90,29 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 		// remove old toString
 		const editor = vscode.window.activeTextEditor;
 		const editorText = editor?.document.getText();
-		const toStringRegex = /@Override(.+)\}/g;
+		const toStringRegex = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
 		const match = toStringRegex.exec(editorText!);
+	
 		if (match) {
-			const oldToString = match[0];
-			const oldToStringIndex = editorText?.indexOf(oldToString);
 
-			vscode.window.showInformationMessage(`there is a match`);
+			const oldToString = match[0];
+			let oldToStringIndex = editorText?.indexOf(oldToString) ;
+
 			if (oldToStringIndex) {
-				const range = new vscode.Range(editor!.document.positionAt(oldToStringIndex), editor!.document.positionAt(oldToStringIndex + oldToString.length));
+			
+				// check if there is a javadoc comment
+				const lastToStringIndex = editor!.document.positionAt(oldToStringIndex + oldToString.length)
+				oldToStringIndex = checkJavadocComment(oldToStringIndex);
+			
+				const range = new vscode.Range(editor!.document.positionAt(oldToStringIndex), lastToStringIndex);
 				editor?.edit(editBuilder => {
 					editBuilder.delete(range);
 				});
-				vscode.window.showInformationMessage(`toString() method removed`);
 			}
 		}
-
-		vscode.window.showInformationMessage(`${editor?.document.getText()}`);
-
 	}
 
+	vscode.window.showInformationMessage("Generating toString() method...");
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public String toString() {\n${tabs}\treturn ToString.of(this)`;
 

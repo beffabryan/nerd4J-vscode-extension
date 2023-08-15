@@ -138,12 +138,13 @@ export function activate(context: vscode.ExtensionContext) {
 				if (editor) {
 
 					const selection = editor.selection;
-					editor.edit(editBuilder => {
+					editor.edit( editBuilder => {
+
 						// add import if is not present
 						if (!checkIfImportExists(TO_STRING_IMPORT)) {
+							vscode.window.showInformationMessage('Import added');
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						}
-
 						editBuilder.insert(selection.end, toStringCode);
 					});
 				}
@@ -194,7 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selectedOptions && selectionType) {
 			let selectedAttributes = selectedOptions.map(option => option.label);
 
-			const toString = generateToStringCode(selectedAttributes, selectionType);
+			const toString = await generateToStringCode(selectedAttributes, selectionType);
 			const equals = generateEquals(selectedAttributes);
 			const hashCode = generateHashCode(selectedAttributes);
 
@@ -217,7 +218,18 @@ export function activate(context: vscode.ExtensionContext) {
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 					const selection = editor.selection;
+
 					editor.edit(editBuilder => {
+						// add imports if is not present
+						if (!checkIfImportExists(TO_STRING_IMPORT)) {
+							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
+						}
+						if (!checkIfImportExists(EQUALS_IMPORT)) {
+							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
+						}
+						if (!checkIfImportExists(HASHCODE_IMPORT)) {
+							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
+						}
 						editBuilder.insert(selection.end, code);
 					});
 				}
