@@ -38,12 +38,37 @@ export function getPackageName(text: string): string {
 }
 
 // generate toString method
-export function generateToStringCode(selectedAttributes: string[], selectedType: string): string {
+export async function generateToStringCode(selectedAttributes: string[], selectedType: string) : Promise<string> {
 
 	//check if toString already exists
 	if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
-		showErrorMessage("The toString() method is already implemented.", []);
-		return "";
+		const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
+
+		if(ans !== "Regenerate"){
+			return "";
+		}
+
+		// remove old toString
+		const editor = vscode.window.activeTextEditor;
+		const editorText = editor?.document.getText();
+		const toStringRegex = /@Override(.+)\}/g;
+		const match = toStringRegex.exec(editorText!);
+		if (match) {
+			const oldToString = match[0];
+			const oldToStringIndex = editorText?.indexOf(oldToString);
+
+			vscode.window.showInformationMessage(`there is a match`);
+			if (oldToStringIndex) {
+				const range = new vscode.Range(editor!.document.positionAt(oldToStringIndex), editor!.document.positionAt(oldToStringIndex + oldToString.length));
+				editor?.edit(editBuilder => {
+					editBuilder.delete(range);
+				});
+				vscode.window.showInformationMessage(`toString() method removed`);
+			}
+		}
+
+		vscode.window.showInformationMessage(`${editor?.document.getText()}`);
+
 	}
 
 	const tabs = insertTab(getIndentation());

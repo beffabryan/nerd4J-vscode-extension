@@ -132,7 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 
 			if (selectionType) {
-				const toStringCode = generateToStringCode(selectedAttributes, selectionType);
+				const toStringCode = await generateToStringCode(selectedAttributes, selectionType);
 
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
