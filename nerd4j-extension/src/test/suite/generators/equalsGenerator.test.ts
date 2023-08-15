@@ -15,7 +15,7 @@ describe('generateEquals', () => {
         + '\n\t);\n}';
         
         const generatedCode = generateEquals(selectedAttributes);
-        assert.strictEqual(generatedCode.trim(), expectedCode.trim());
+        assert.strictEqual(`${generatedCode}`.trim(), expectedCode.trim());
     });
 
     // test equals with empty selected attributes

@@ -9,7 +9,7 @@ describe('generateHashCode', () => {
         const selectedAttributes = ['String name', 'int age', 'boolean isActive'];
         const expectedCode = '\n@Override\npublic int hashCode() {\n\treturn Hashcode.of(name, age, isActive);\n}\n';
         const generatedCode = generateHashCode(selectedAttributes);
-        assert.strictEqual(generatedCode.trim(), expectedCode.trim());
+        assert.strictEqual(`${generatedCode}`.trim(), expectedCode.trim());
     });
 
     // test hashCode with empty selected attributes

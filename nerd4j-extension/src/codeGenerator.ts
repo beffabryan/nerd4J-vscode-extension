@@ -10,14 +10,6 @@ function checkIfMethodAlreadyExists(methodName: string) {
 	return editorText?.includes(methodName);
 }
 
-// show error message
-function showErrorMessage(message: string, quickFixes: any) {
-	//add all quick fixes
-	vscode.window.showErrorMessage(message,
-		{ modal: false },
-		...quickFixes);
-}
-
 // show warning message
 function showWarningMessage(message: string) {
 
@@ -38,12 +30,12 @@ export function getPackageName(text: string): string {
 }
 
 // check if there is a javadoc comment
-function checkJavadocComment(oldCodeIndex: number) : number {
-	 
+function checkJavadocComment(oldCodeIndex: number): number {
+
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
 
-	vscode.window.showInformationMessage("index: " +  oldCodeIndex);
+	vscode.window.showInformationMessage("index: " + oldCodeIndex);
 
 	if (!editorText) {
 		return oldCodeIndex;
@@ -77,13 +69,13 @@ function checkJavadocComment(oldCodeIndex: number) : number {
 }
 
 // generate toString method
-export async function generateToStringCode(selectedAttributes: string[], selectedType: string) : Promise<string> {
+export async function generateToStringCode(selectedAttributes: string[], selectedType: string): Promise<string> {
 
 	//check if toString already exists
 	if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
 		const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
 
-		if(ans !== "Regenerate"){
+		if (ans !== "Regenerate") {
 			return "";
 		}
 
@@ -92,18 +84,18 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 		const editorText = editor?.document.getText();
 		const toStringRegex = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
 		const match = toStringRegex.exec(editorText!);
-	
+
 		if (match) {
 
 			const oldToString = match[0];
-			let oldToStringIndex = editorText?.indexOf(oldToString) ;
+			let oldToStringIndex = editorText?.indexOf(oldToString);
 
 			if (oldToStringIndex) {
-			
+
 				// check if there is a javadoc comment
 				const lastToStringIndex = editor!.document.positionAt(oldToStringIndex + oldToString.length)
 				oldToStringIndex = checkJavadocComment(oldToStringIndex);
-			
+
 				const range = new vscode.Range(editor!.document.positionAt(oldToStringIndex), lastToStringIndex);
 				editor?.edit(editBuilder => {
 					editBuilder.delete(range);
@@ -112,7 +104,6 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 		}
 	}
 
-	vscode.window.showInformationMessage("Generating toString() method...");
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public String toString() {\n${tabs}\treturn ToString.of(this)`;
 
@@ -128,68 +119,136 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 	return code;
 }
 
-// generate equals and hadhcode method
-export function generateEquals(selectedAttributes: string[], createHashCode: boolean = false): string {
+// generate equals and hashcode method
+export async function generateEquals(selectedAttributes: string[], createHashCode: boolean = false): Promise<string> {
 
 	let code = '';
+	let regenerateEquals = false;
 
 	//check if equals already exists
 	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
-		showErrorMessage("The equals() method is already implemented.", []);
-	} else {
+		const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
 
-		const tabs = insertTab(getIndentation());
-		code += `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
-		if (selectedAttributes.length === 0) {
-			code += `);\n${tabs}}\n`;
-		} else {
-			code += ',';
-			for (let i = 0; i < selectedAttributes.length; i++) {
-				const attributeName = selectedAttributes[i].split(" ")[1];
+		if (ans !== "Regenerate") {
 
-				if (attributeName) {
-					code += `\n${tabs}\t\to -> o.${attributeName}`;
-
-					//check index
-					if (i !== selectedAttributes.length - 1) {
-						code += ', ';
-					}
-				}
+			if (createHashCode) {
+				code += await generateHashCode(selectedAttributes);
 			}
 
-			code += `\n${tabs}\t);\n${tabs}}\n`;
+			return code;
 		}
-		showInformationMessage("equals() method generated");
+
+		// remove old equals
+		const editor = vscode.window.activeTextEditor;
+		const editorText = editor?.document.getText();
+		const equalsRegex = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
+		const match = equalsRegex.exec(editorText!);
+
+		if (match) {
+
+			const oldEquals = match[0];
+			let oldEqualsIndex = editorText?.indexOf(oldEquals);
+
+			if (oldEqualsIndex) {
+
+				// check if there is a javadoc comment
+				const lastEqualsIndex = editor!.document.positionAt(oldEqualsIndex + oldEquals.length)
+				oldEqualsIndex = checkJavadocComment(oldEqualsIndex);
+
+				const range = new vscode.Range(editor!.document.positionAt(oldEqualsIndex), lastEqualsIndex);
+				editor?.edit(editBuilder => {
+					editBuilder.delete(range);
+				});
+
+			}
+		}
+	}
+
+	const tabs = insertTab(getIndentation());
+	code += `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
+	vscode.window.showInformationMessage("selectedAttributes: " + selectedAttributes.length);
+	if (selectedAttributes.length === 0) {
+		code += `);\n${tabs}}\n`;
+	} else {
+		code += ',';
+
+		for (let i = 0; i < selectedAttributes.length; i++) {
+			const attributeName = selectedAttributes[i].split(" ")[1];
+
+			if (attributeName) {
+				code += `\n${tabs}\t\to -> o.${attributeName}`;
+
+				//check index
+				if (i !== selectedAttributes.length - 1) {
+					code += ', ';
+				}
+			}
+		}
+
+		code += `\n${tabs}\t);\n${tabs}}\n`;
 	}
 
 	if (createHashCode) {
-		code += generateHashCode(selectedAttributes);
+		code += await generateHashCode(selectedAttributes);
 	}
+
+	showInformationMessage("equals() method generated");
 
 	return code;
 }
 
 // generate hashCode method
-export function generateHashCode(selectedAttributes: string[]): string {
+export async function generateHashCode(selectedAttributes: string[]): Promise<string> {
 
 	//check if hashCode already exists
 	if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
-		showErrorMessage("The hashCode() method is already implemented.", []);
-		return "";
+		const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
+
+		if (ans !== "Regenerate") {
+			return "";
+		}
+
+		// remove old hashcode
+		const editor = vscode.window.activeTextEditor;
+		const editorText = editor?.document.getText();
+		const hashCodeRegex = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
+		const match = hashCodeRegex.exec(editorText!);
+
+		if (match) {
+
+			const oldHashCode = match[0];
+			let oldHashCodeIndex = editorText?.indexOf(oldHashCode);
+
+			if (oldHashCodeIndex) {
+
+				// check if there is a javadoc comment
+				const lastHashCodeIndexIndex = editor!.document.positionAt(oldHashCodeIndex + oldHashCode.length)
+				oldHashCodeIndex = checkJavadocComment(oldHashCodeIndex);
+
+				const range = new vscode.Range(editor!.document.positionAt(oldHashCodeIndex), lastHashCodeIndexIndex);
+				editor?.edit(editBuilder => {
+					editBuilder.delete(range);
+				});
+			}
+		}
 	}
 
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public int hashCode() {\n${tabs}\treturn Hashcode.of(`;
 
-	for (let i = 0; i < selectedAttributes.length; i++) {
-		const attributeName = selectedAttributes[i].split(" ")[1];
+	if (selectedAttributes.length === 0) {
+		code += '0';
+	} else {
+		for (let i = 0; i < selectedAttributes.length; i++) {
+			const attributeName = selectedAttributes[i].split(" ")[1];
 
-		if (attributeName) {
-			code += `${attributeName}`;
+			if (attributeName) {
+				code += `${attributeName}`;
 
-			//check index
-			if (i !== selectedAttributes.length - 1) {
-				code += ', ';
+				//check index
+				if (i !== selectedAttributes.length - 1) {
+					code += ', ';
+				}
 			}
 		}
 	}

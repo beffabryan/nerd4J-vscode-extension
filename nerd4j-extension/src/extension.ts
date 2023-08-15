@@ -196,8 +196,8 @@ export function activate(context: vscode.ExtensionContext) {
 			let selectedAttributes = selectedOptions.map(option => option.label);
 
 			const toString = await generateToStringCode(selectedAttributes, selectionType);
-			const equals = generateEquals(selectedAttributes);
-			const hashCode = generateHashCode(selectedAttributes);
+			const equals = await generateEquals(selectedAttributes);
+			const hashCode = await generateHashCode(selectedAttributes);
 
 			let code = toString + equals + hashCode;
 
@@ -257,13 +257,14 @@ export function activate(context: vscode.ExtensionContext) {
 				const selectedAttributes = selectedOptions.map(option => option.label);
 
 				const createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
-				const equalsCode = generateEquals(selectedAttributes, createHashCode);
+				const equalsCode = await generateEquals(selectedAttributes, createHashCode);
 
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 					const selection = editor.selection;
 
 					editor.edit(editBuilder => {
+
 						// add imports if is not present
 						if (!checkIfImportExists(EQUALS_IMPORT)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
