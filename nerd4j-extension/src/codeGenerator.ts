@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { EQUALS_SIGNATURE, HASHCODE_SIGNATURE, TO_STRING_SIGNATURE } from './config';
 
 // check if method already exists
 export function checkIfMethodAlreadyExists(methodName: string) {
@@ -103,27 +102,9 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 }
 
 // generate equals and hashcode method
-export async function generateEquals(selectedAttributes: string[], createHashCode: boolean = false, regenerateCode: boolean = true): Promise<string> {
+export async function generateEquals(selectedAttributes: string[]): Promise<string> {
 
 	let code = '';
-
-	//check if equals already exists
-	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE) && regenerateCode) {
-		const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
-
-		if (ans !== "Regenerate") {
-
-			if (createHashCode) {
-				code += await generateHashCode(selectedAttributes);
-			}
-
-			return code;
-		}
-
-		// remove old equals
-		const equalsRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-		//await removeOldCode(equalsRegExp);
-	}
 
 	const tabs = insertTab(getIndentation());
 	code += `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
@@ -148,28 +129,15 @@ export async function generateEquals(selectedAttributes: string[], createHashCod
 		code += `\n${tabs}\t);\n${tabs}}\n`;
 	}
 
-	if (createHashCode) {
+	/*if (createHashCode) {
 		code += await generateHashCode(selectedAttributes);
-	}
+	}*/
 
 	return code;
 }
 
 // generate hashCode method
-export async function generateHashCode(selectedAttributes: string[], regenerateCode: boolean = true): Promise<string> {
-
-	//check if hashCode already exists
-	if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE) && regenerateCode) {
-		const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
-
-		if (ans !== "Regenerate") {
-			return "";
-		}
-
-		// remove old hashcode
-		const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
-		//	await removeOldCode(hashCodeRegExp)
-	}
+export async function generateHashCode(selectedAttributes: string[]): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public int hashCode() {\n${tabs}\treturn Hashcode.of(`;

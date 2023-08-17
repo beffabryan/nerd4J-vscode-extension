@@ -6,12 +6,6 @@ import { EQUALS_IMPORT, EQUALS_SIGNATURE, HASHCODE_IMPORT, HASHCODE_SIGNATURE, J
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
-import { cursorTo } from 'readline';
-
-const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
-const euqlasRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
-
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -124,6 +118,8 @@ export function activate(context: vscode.ExtensionContext) {
 	const toString = vscode.commands.registerCommand('nerd4j-extension.generateToString', async () => {
 
 		await getFields();
+		const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
+
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes'
@@ -198,6 +194,11 @@ export function activate(context: vscode.ExtensionContext) {
 	//all methods command
 	const allMethods = vscode.commands.registerCommand('nerd4j-extension.generateAllMethods', async () => {
 		await getFields();
+
+		const equalsRegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
+		const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
+		const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
+
 		let selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes for toString, equals and hashCode'
@@ -213,8 +214,8 @@ export function activate(context: vscode.ExtensionContext) {
 			let selectedAttributes = selectedOptions.map(option => option.label);
 
 			const toString = await generateToStringCode(selectedAttributes, selectionType);
-			const equals = await generateEquals(selectedAttributes, false, false);
-			const hashCode = await generateHashCode(selectedAttributes, false);
+			const equals = await generateEquals(selectedAttributes);
+			const hashCode = await generateHashCode(selectedAttributes);
 
 			let code = '';
 
@@ -285,7 +286,7 @@ export function activate(context: vscode.ExtensionContext) {
 						vscode.window.showInformationMessage("toString() method regenerated");
 					}
 					if (regenerateEquals) {
-						await replaceOldCode(euqlasRegExp, equals);
+						await replaceOldCode(equalsRegExp, equals);
 						vscode.window.showInformationMessage("equals() method regenerated");
 					}
 					if (regenerateHashCode) {
@@ -301,6 +302,10 @@ export function activate(context: vscode.ExtensionContext) {
 	const equals = vscode.commands.registerCommand('nerd4j-extension.generateEquals', async () => {
 
 		await getFields();
+
+		const equalsRegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
+		const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
+
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes'
@@ -315,23 +320,44 @@ export function activate(context: vscode.ExtensionContext) {
 			if (hashCodeOption) {
 
 				const selectedAttributes = selectedOptions.map(option => option.label);
-
 				const createHashCode = hashCodeOption[0] && hashCodeOption[0].picked;
-				const equalsCode = await generateEquals(selectedAttributes, createHashCode);
+
+				// code variables
+				let code = '';
+				const equalsCode = await generateEquals(selectedAttributes);
 
 				const editor = vscode.window.activeTextEditor;
 
 				if (editor) {
+
 					const selection = editor.selection;
 
-					// remove old code
+					let regenerateEquals: boolean = false;
+					let regenerateHashCode: boolean = false;
+
+					// check and remove old equals code
 					if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
+							regenerateEquals = true;
+						}
+					} else {
+						code += equalsCode;
+					}
 
-							await replaceOldCode(toStringRegExp, equalsCode);
-							vscode.window.showInformationMessage("equals() method regenerated");
+					// check and remove old equals code
+					let hashCode = '';
+					if (createHashCode) {
 
+						hashCode = await generateHashCode(selectedAttributes);
+
+						if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
+							const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
+							if (ans === "Regenerate") {
+								regenerateHashCode = true;
+							}
+						} else {
+							code += hashCode;
 						}
 					}
 
@@ -345,9 +371,19 @@ export function activate(context: vscode.ExtensionContext) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
 						}
 
-						editBuilder.insert(selection.end, equalsCode);
+						editBuilder.insert(selection.end, code);
 
 					});
+
+					// delete old code
+					if (regenerateEquals) {
+						await replaceOldCode(equalsRegExp, equalsCode);
+						vscode.window.showInformationMessage("equals() method regenerated");
+					}
+					if (regenerateHashCode) {
+						await replaceOldCode(hashCodeRegExp, hashCode);
+						vscode.window.showInformationMessage("hashCode() method regenerated");
+					}
 				}
 			}
 		}
