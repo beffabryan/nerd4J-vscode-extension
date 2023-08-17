@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { checkIfMethodAlreadyExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, removeOldCode } from './codeGenerator';
+import { checkIfMethodAlreadyExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
 import { EQUALS_IMPORT, EQUALS_SIGNATURE, HASHCODE_IMPORT, HASHCODE_SIGNATURE, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_SIGNATURE } from './config';
@@ -224,12 +224,11 @@ export function activate(context: vscode.ExtensionContext) {
 					const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
 					const euqlasRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
 					const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
-					
+
 					// remove old code
 					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
-							code += toString;
 							regenerateToString = true;
 						}
 					} else {
@@ -238,7 +237,6 @@ export function activate(context: vscode.ExtensionContext) {
 					if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
-							code += equals;
 							regenerateEquals = true;
 						}
 					} else {
@@ -247,7 +245,6 @@ export function activate(context: vscode.ExtensionContext) {
 					if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
-							code += hashCode;
 							regenerateHashCode = true;
 						}
 					} else {
@@ -255,19 +252,6 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 
 					code += withFieldCode;
-
-					// delete old code
-					{
-						if(regenerateToString){
-							await removeOldCode(toStringRegExp)
-						}
-						if(regenerateEquals){
-							await removeOldCode(euqlasRegExp)
-						}
-						if(regenerateHashCode){
-							await removeOldCode(hashCodeRegExp)
-						}						
-					}
 
 					await editor.edit(editBuilder => {
 						// add imports if is not present
@@ -282,6 +266,17 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 						editBuilder.insert(selection.end, code);
 					});
+
+					// delete old code
+					if (regenerateToString) {
+						await replaceOldCode(toStringRegExp, toString);
+					}
+					if (regenerateEquals) {
+						await replaceOldCode(euqlasRegExp, equals);
+					}
+					if (regenerateHashCode) {
+						await replaceOldCode(hashCodeRegExp, hashCode);
+					}
 				}
 			}
 		}

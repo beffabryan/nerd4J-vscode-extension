@@ -60,7 +60,7 @@ function checkJavadocComment(oldCodeIndex: number): number {
 }
 
 // remove old code
-export async function removeOldCode(regex: RegExp) {
+export async function replaceOldCode(regex: RegExp, newCode: string) {
 
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
@@ -79,7 +79,7 @@ export async function removeOldCode(regex: RegExp) {
 
 			const range = new vscode.Range(editor!.document.positionAt(oldCodeIndex), oldCodeLastIndex);
 			await editor?.edit(editBuilder => {
-				editBuilder.delete(range);
+				editBuilder.replace(range, newCode);
 			});
 		}
 	}
@@ -98,7 +98,7 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 
 		// remove old code
 		const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
-		await removeOldCode(toStringRegExp);
+		//await removeOldCode(toStringRegExp);
 	}
 
 	const tabs = insertTab(getIndentation());
@@ -135,7 +135,7 @@ export async function generateEquals(selectedAttributes: string[], createHashCod
 
 		// remove old equals
 		const equalsRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-		await removeOldCode(equalsRegExp);
+		//await removeOldCode(equalsRegExp);
 	}
 
 	const tabs = insertTab(getIndentation());
@@ -181,7 +181,7 @@ export async function generateHashCode(selectedAttributes: string[], regenerateC
 
 		// remove old hashcode
 		const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
-		await removeOldCode(hashCodeRegExp)
+		//	await removeOldCode(hashCodeRegExp)
 	}
 
 	const tabs = insertTab(getIndentation());
