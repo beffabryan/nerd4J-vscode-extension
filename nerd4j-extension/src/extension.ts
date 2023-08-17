@@ -217,13 +217,20 @@ export function activate(context: vscode.ExtensionContext) {
 				if (editor) {
 					const selection = editor.selection;
 
+					let regenerateToString: boolean = false;
+					let regenerateEquals: boolean = false;
+					let regenerateHashCode: boolean = false;
+
+					const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
+					const euqlasRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
+					const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
+					
 					// remove old code
 					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
 							code += toString;
-							const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
-							await removeOldCode(toStringRegExp)
+							regenerateToString = true;
 						}
 					} else {
 						code += toString
@@ -232,24 +239,35 @@ export function activate(context: vscode.ExtensionContext) {
 						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
 							code += equals;
-							const euqlasRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-							await removeOldCode(euqlasRegExp)
+							regenerateEquals = true;
 						}
 					} else {
 						code += equals
 					}
 					if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
-						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
+						const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
 							code += hashCode;
-							const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
-							await removeOldCode(hashCodeRegExp)
+							regenerateHashCode = true;
 						}
 					} else {
 						code += hashCode;
 					}
 
 					code += withFieldCode;
+
+					// delete old code
+					{
+						if(regenerateToString){
+							await removeOldCode(toStringRegExp)
+						}
+						if(regenerateEquals){
+							await removeOldCode(euqlasRegExp)
+						}
+						if(regenerateHashCode){
+							await removeOldCode(hashCodeRegExp)
+						}						
+					}
 
 					await editor.edit(editBuilder => {
 						// add imports if is not present
