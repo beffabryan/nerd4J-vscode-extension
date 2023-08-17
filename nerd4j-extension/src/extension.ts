@@ -147,7 +147,6 @@ export function activate(context: vscode.ExtensionContext) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						}
 						editBuilder.insert(selection.end, toStringCode);
-						vscode.window.showInformationMessage("toString() method generated");
 					});
 				}
 			}
