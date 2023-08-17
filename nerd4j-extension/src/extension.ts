@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
-import { generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName } from './codeGenerator';
+import { checkIfMethodAlreadyExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, removeOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, HASHCODE_IMPORT, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT } from './config';
+import { EQUALS_IMPORT, EQUALS_SIGNATURE, HASHCODE_IMPORT, HASHCODE_SIGNATURE, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_SIGNATURE } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
+import { cursorTo } from 'readline';
+
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -33,8 +35,8 @@ function showDialog(canSelectMany: boolean, openLabel: string, title: string, ca
 	});
 }
 
-function getJDK() {
-	const currentJDK = getCurrentJDK();
+async function getJDK() {
+	const currentJDK = await getCurrentJDK();
 	if (!currentJDK) {
 		vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`,
 			jdkQuickFix).then(selection => {
@@ -45,7 +47,7 @@ function getJDK() {
 		return;
 	}
 
-	return currentJDK;
+	return Promise.resolve(currentJDK);
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -138,14 +140,14 @@ export function activate(context: vscode.ExtensionContext) {
 				if (editor) {
 
 					const selection = editor.selection;
-					editor.edit( editBuilder => {
+					await editor.edit(editBuilder => {
 
 						// add import if is not present
 						if (!checkIfImportExists(TO_STRING_IMPORT)) {
-							vscode.window.showInformationMessage('Import added');
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						}
 						editBuilder.insert(selection.end, toStringCode);
+						vscode.window.showInformationMessage("toString() method generated");
 					});
 				}
 			}
@@ -195,12 +197,11 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selectedOptions && selectionType) {
 			let selectedAttributes = selectedOptions.map(option => option.label);
 
-			const toString = await generateToStringCode(selectedAttributes, selectionType);
-			const equals = await generateEquals(selectedAttributes);
-			const hashCode = await generateHashCode(selectedAttributes);
+			const toString = await generateToStringCode(selectedAttributes, selectionType, false);
+			const equals = await generateEquals(selectedAttributes, false, false);
+			const hashCode = await generateHashCode(selectedAttributes, false);
 
-			let code = toString + equals + hashCode;
-
+			let code = '';
 
 			// select attributres for withField
 			await getFields(true);
@@ -213,13 +214,45 @@ export function activate(context: vscode.ExtensionContext) {
 				selectedAttributes = selectedOptions.map(option => option.label);
 				const withFieldCode = generateWithFields(selectedAttributes, className);
 
-				code += '\n\n' + withFieldCode;
-
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 					const selection = editor.selection;
 
-					editor.edit(editBuilder => {
+					// remove old code
+					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
+						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
+						if (ans === "Regenerate") {
+							code += toString;
+							const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
+							await removeOldCode(toStringRegExp)
+						}
+					} else {
+						code += toString
+					}
+					if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
+						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
+						if (ans === "Regenerate") {
+							code += equals;
+							const euqlasRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
+							await removeOldCode(euqlasRegExp)
+						}
+					} else {
+						code += equals
+					}
+					if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
+						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
+						if (ans === "Regenerate") {
+							code += hashCode;
+							const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
+							await removeOldCode(hashCodeRegExp)
+						}
+					} else {
+						code += hashCode;
+					}
+
+					code += withFieldCode;
+
+					await editor.edit(editBuilder => {
 						// add imports if is not present
 						if (!checkIfImportExists(TO_STRING_IMPORT)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
@@ -260,10 +293,11 @@ export function activate(context: vscode.ExtensionContext) {
 				const equalsCode = await generateEquals(selectedAttributes, createHashCode);
 
 				const editor = vscode.window.activeTextEditor;
+
 				if (editor) {
 					const selection = editor.selection;
 
-					editor.edit(editBuilder => {
+					await editor.edit(editBuilder => {
 
 						// add imports if is not present
 						if (!checkIfImportExists(EQUALS_IMPORT)) {
@@ -272,7 +306,9 @@ export function activate(context: vscode.ExtensionContext) {
 						if (!checkIfImportExists(HASHCODE_IMPORT) && createHashCode) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
 						}
+
 						editBuilder.insert(selection.end, equalsCode);
+
 					});
 				}
 			}
@@ -338,7 +374,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 // get fields using java reflection
 function getFields(editableField: boolean = false): Promise<any> {
-	return new Promise((resolve, reject) => {
+	return new Promise(async (resolve, reject) => {
 
 		// get root path
 		const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -355,7 +391,7 @@ function getFields(editableField: boolean = false): Promise<any> {
 				if (activeEditor) {
 
 					//check jdk version
-					const jdk = getJDK();
+					const jdk = await getJDK();
 					if (!jdk) {
 						return;
 					}
@@ -363,8 +399,8 @@ function getFields(editableField: boolean = false): Promise<any> {
 					// Get the class name of the active file
 					const fileUri = activeEditor.document.uri;
 					const fileName = path.basename(fileUri.fsPath).split('.')[0] + '.class';
-					
-					if ((fileUri.fsPath).split('.')[1] !== 'java'){
+
+					if ((fileUri.fsPath).split('.')[1] !== 'java') {
 						vscode.window.showErrorMessage("The active file is not a java file");
 						return;
 					}

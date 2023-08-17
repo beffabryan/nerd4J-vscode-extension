@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { EQUALS_SIGNATURE, HASHCODE_SIGNATURE, TO_STRING_SIGNATURE } from './config';
 
 // check if method already exists
-function checkIfMethodAlreadyExists(methodName: string) {
+export function checkIfMethodAlreadyExists(methodName: string) {
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
 
@@ -11,21 +11,14 @@ function checkIfMethodAlreadyExists(methodName: string) {
 }
 
 // show warning message
-function showWarningMessage(message: string) {
-
-	//add all quick fixes
-	vscode.window.showWarningMessage(message);
-}
-
-// show warning message
 function showInformationMessage(message: string) {
 	vscode.window.showInformationMessage(message);
 }
 
 // get package name
-export function getPackageName(text: string): string {
-	const packageRegex = /package\s+([a-zA-Z0-9.]+);/g;
-	const match = packageRegex.exec(text!);
+export function getPackageName(text: string) {
+	const packageRegExp: RegExp = /package\s+([a-zA-Z0-9.]+);/g;
+	const match = packageRegExp.exec(text!);
 	return match ? match[1] : "";
 }
 
@@ -34,8 +27,6 @@ function checkJavadocComment(oldCodeIndex: number): number {
 
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
-
-	vscode.window.showInformationMessage("index: " + oldCodeIndex);
 
 	if (!editorText) {
 		return oldCodeIndex;
@@ -68,40 +59,46 @@ function checkJavadocComment(oldCodeIndex: number): number {
 	return oldCodeIndex;
 }
 
+// remove old code
+export async function removeOldCode(regex: RegExp) {
+
+	const editor = vscode.window.activeTextEditor;
+	const editorText = editor?.document.getText();
+	const match = regex.exec(editorText!);
+
+	if (match) {
+
+		const oldCode = match[0];
+		let oldCodeIndex = editorText?.indexOf(oldCode);
+
+		if (oldCodeIndex) {
+
+			// check if there is a javadoc comment
+			const oldCodeLastIndex = editor!.document.positionAt(oldCodeIndex + oldCode.length)
+			oldCodeIndex = checkJavadocComment(oldCodeIndex);
+
+			const range = new vscode.Range(editor!.document.positionAt(oldCodeIndex), oldCodeLastIndex);
+			await editor?.edit(editBuilder => {
+				editBuilder.delete(range);
+			});
+		}
+	}
+}
+
 // generate toString method
-export async function generateToStringCode(selectedAttributes: string[], selectedType: string): Promise<string> {
+export async function generateToStringCode(selectedAttributes: string[], selectedType: string, regenerateCode: boolean = true): Promise<string> {
 
 	//check if toString already exists
-	if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
+	if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE) && regenerateCode) {
 		const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
 
 		if (ans !== "Regenerate") {
 			return "";
 		}
 
-		// remove old toString
-		const editor = vscode.window.activeTextEditor;
-		const editorText = editor?.document.getText();
-		const toStringRegex = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
-		const match = toStringRegex.exec(editorText!);
-
-		if (match) {
-
-			const oldToString = match[0];
-			let oldToStringIndex = editorText?.indexOf(oldToString);
-
-			if (oldToStringIndex) {
-
-				// check if there is a javadoc comment
-				const lastToStringIndex = editor!.document.positionAt(oldToStringIndex + oldToString.length)
-				oldToStringIndex = checkJavadocComment(oldToStringIndex);
-
-				const range = new vscode.Range(editor!.document.positionAt(oldToStringIndex), lastToStringIndex);
-				editor?.edit(editBuilder => {
-					editBuilder.delete(range);
-				});
-			}
-		}
+		// remove old code
+		const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
+		await removeOldCode(toStringRegExp);
 	}
 
 	const tabs = insertTab(getIndentation());
@@ -115,18 +112,16 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 	}
 
 	code += `\n${tabs}\t\t.${selectedType}();\n${tabs}}\n`;
-	showInformationMessage("toString() method generated");
 	return code;
 }
 
 // generate equals and hashcode method
-export async function generateEquals(selectedAttributes: string[], createHashCode: boolean = false): Promise<string> {
+export async function generateEquals(selectedAttributes: string[], createHashCode: boolean = false, regenerateCode: boolean = true): Promise<string> {
 
 	let code = '';
-	let regenerateEquals = false;
 
 	//check if equals already exists
-	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
+	if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE) && regenerateCode) {
 		const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
 
 		if (ans !== "Regenerate") {
@@ -139,34 +134,12 @@ export async function generateEquals(selectedAttributes: string[], createHashCod
 		}
 
 		// remove old equals
-		const editor = vscode.window.activeTextEditor;
-		const editorText = editor?.document.getText();
-		const equalsRegex = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-		const match = equalsRegex.exec(editorText!);
-
-		if (match) {
-
-			const oldEquals = match[0];
-			let oldEqualsIndex = editorText?.indexOf(oldEquals);
-
-			if (oldEqualsIndex) {
-
-				// check if there is a javadoc comment
-				const lastEqualsIndex = editor!.document.positionAt(oldEqualsIndex + oldEquals.length)
-				oldEqualsIndex = checkJavadocComment(oldEqualsIndex);
-
-				const range = new vscode.Range(editor!.document.positionAt(oldEqualsIndex), lastEqualsIndex);
-				editor?.edit(editBuilder => {
-					editBuilder.delete(range);
-				});
-
-			}
-		}
+		const equalsRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
+		await removeOldCode(equalsRegExp);
 	}
 
 	const tabs = insertTab(getIndentation());
 	code += `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
-	vscode.window.showInformationMessage("selectedAttributes: " + selectedAttributes.length);
 	if (selectedAttributes.length === 0) {
 		code += `);\n${tabs}}\n`;
 	} else {
@@ -192,16 +165,14 @@ export async function generateEquals(selectedAttributes: string[], createHashCod
 		code += await generateHashCode(selectedAttributes);
 	}
 
-	showInformationMessage("equals() method generated");
-
 	return code;
 }
 
 // generate hashCode method
-export async function generateHashCode(selectedAttributes: string[]): Promise<string> {
+export async function generateHashCode(selectedAttributes: string[], regenerateCode: boolean = true): Promise<string> {
 
 	//check if hashCode already exists
-	if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
+	if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE) && regenerateCode) {
 		const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
 
 		if (ans !== "Regenerate") {
@@ -209,28 +180,8 @@ export async function generateHashCode(selectedAttributes: string[]): Promise<st
 		}
 
 		// remove old hashcode
-		const editor = vscode.window.activeTextEditor;
-		const editorText = editor?.document.getText();
-		const hashCodeRegex = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
-		const match = hashCodeRegex.exec(editorText!);
-
-		if (match) {
-
-			const oldHashCode = match[0];
-			let oldHashCodeIndex = editorText?.indexOf(oldHashCode);
-
-			if (oldHashCodeIndex) {
-
-				// check if there is a javadoc comment
-				const lastHashCodeIndexIndex = editor!.document.positionAt(oldHashCodeIndex + oldHashCode.length)
-				oldHashCodeIndex = checkJavadocComment(oldHashCodeIndex);
-
-				const range = new vscode.Range(editor!.document.positionAt(oldHashCodeIndex), lastHashCodeIndexIndex);
-				editor?.edit(editBuilder => {
-					editBuilder.delete(range);
-				});
-			}
-		}
+		const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
+		await removeOldCode(hashCodeRegExp)
 	}
 
 	const tabs = insertTab(getIndentation());
@@ -254,9 +205,7 @@ export async function generateHashCode(selectedAttributes: string[]): Promise<st
 	}
 
 	code += `);\n${tabs}}\n`;
-	showInformationMessage("hashCode() method generated");
-
-	return code;
+	return code;;
 
 }
 
@@ -281,12 +230,8 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 			if (!checkIfMethodAlreadyExists(methodSignature)) {
 				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = value;\n${tabs}\treturn this;\n${tabs}}\n`;
 			}
-			else {
-				showWarningMessage(`Method ${methodName} already exists`);
-			}
 		}
 	}
-	showInformationMessage("withField() methods generated");
 	return code;
 }
 
