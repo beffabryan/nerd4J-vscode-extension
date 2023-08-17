@@ -8,6 +8,10 @@ import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
 import { cursorTo } from 'readline';
 
+const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
+const euqlasRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
+const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
+
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -139,6 +143,18 @@ export function activate(context: vscode.ExtensionContext) {
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 
+					// remove old code
+					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
+						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
+						if (ans === "Regenerate") {
+
+							await replaceOldCode(toStringRegExp, toStringCode);
+							vscode.window.showInformationMessage("toString() method regenerated");
+
+						}
+						return;
+					}
+
 					const selection = editor.selection;
 					await editor.edit(editBuilder => {
 
@@ -196,7 +212,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selectedOptions && selectionType) {
 			let selectedAttributes = selectedOptions.map(option => option.label);
 
-			const toString = await generateToStringCode(selectedAttributes, selectionType, false);
+			const toString = await generateToStringCode(selectedAttributes, selectionType);
 			const equals = await generateEquals(selectedAttributes, false, false);
 			const hashCode = await generateHashCode(selectedAttributes, false);
 
@@ -220,10 +236,6 @@ export function activate(context: vscode.ExtensionContext) {
 					let regenerateToString: boolean = false;
 					let regenerateEquals: boolean = false;
 					let regenerateHashCode: boolean = false;
-
-					const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
-					const euqlasRegExp: RegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-					const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
 
 					// remove old code
 					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
@@ -270,12 +282,15 @@ export function activate(context: vscode.ExtensionContext) {
 					// delete old code
 					if (regenerateToString) {
 						await replaceOldCode(toStringRegExp, toString);
+						vscode.window.showInformationMessage("toString() method regenerated");
 					}
 					if (regenerateEquals) {
 						await replaceOldCode(euqlasRegExp, equals);
+						vscode.window.showInformationMessage("equals() method regenerated");
 					}
 					if (regenerateHashCode) {
 						await replaceOldCode(hashCodeRegExp, hashCode);
+						vscode.window.showInformationMessage("hashCode() method regenerated");
 					}
 				}
 			}
@@ -308,6 +323,17 @@ export function activate(context: vscode.ExtensionContext) {
 
 				if (editor) {
 					const selection = editor.selection;
+
+					// remove old code
+					if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
+						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
+						if (ans === "Regenerate") {
+
+							await replaceOldCode(toStringRegExp, equalsCode);
+							vscode.window.showInformationMessage("equals() method regenerated");
+
+						}
+					}
 
 					await editor.edit(editBuilder => {
 

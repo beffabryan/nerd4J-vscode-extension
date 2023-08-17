@@ -86,20 +86,7 @@ export async function replaceOldCode(regex: RegExp, newCode: string) {
 }
 
 // generate toString method
-export async function generateToStringCode(selectedAttributes: string[], selectedType: string, regenerateCode: boolean = true): Promise<string> {
-
-	//check if toString already exists
-	if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE) && regenerateCode) {
-		const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
-
-		if (ans !== "Regenerate") {
-			return "";
-		}
-
-		// remove old code
-		const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
-		//await removeOldCode(toStringRegExp);
-	}
+export async function generateToStringCode(selectedAttributes: string[], selectedType: string): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public String toString() {\n${tabs}\treturn ToString.of(this)`;
