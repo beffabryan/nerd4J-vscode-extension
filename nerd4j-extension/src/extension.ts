@@ -92,7 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//recompile fileanalyzer command
 	const recompileFileAnalyzer = vscode.commands.registerCommand('nerd4j-extension.recompileFileAnalyzer', async () => {
 
-		const jdk = getJDK();
+		const jdk = await getJDK();
 		if (!jdk) {
 			return;
 		}

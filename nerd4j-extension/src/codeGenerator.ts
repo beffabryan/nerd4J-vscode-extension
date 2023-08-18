@@ -9,11 +9,6 @@ export function checkIfMethodAlreadyExists(methodName: string) {
 	return editorText?.includes(methodName);
 }
 
-// show warning message
-function showInformationMessage(message: string) {
-	vscode.window.showInformationMessage(message);
-}
-
 // get package name
 export function getPackageName(text: string) {
 	const packageRegExp: RegExp = /package\s+([a-zA-Z0-9.]+);/g;
@@ -183,11 +178,13 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 	return code;
 }
 
+// insert the number of tabs
 function insertTab(times: number): string {
 	const character = '\t';
 	return character.repeat(times);
 }
 
+// returns the number of tabs to indent the code
 function getIndentation(): number {
 
 	const editor = vscode.window.activeTextEditor;
