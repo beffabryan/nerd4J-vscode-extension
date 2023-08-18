@@ -73,7 +73,7 @@ export async function replaceOldCode(regex: RegExp, newCode: string) {
 		if (oldCodeIndex) {
 
 			// check if there is a javadoc comment
-			const oldCodeLastIndex = editor!.document.positionAt(oldCodeIndex + oldCode.length)
+			const oldCodeLastIndex = editor!.document.positionAt(oldCodeIndex + oldCode.length);
 			oldCodeIndex = checkJavadocComment(oldCodeIndex);
 
 			const range = new vscode.Range(editor!.document.positionAt(oldCodeIndex), oldCodeLastIndex);
@@ -104,10 +104,8 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 // generate equals and hashcode method
 export async function generateEquals(selectedAttributes: string[]): Promise<string> {
 
-	let code = '';
-
 	const tabs = insertTab(getIndentation());
-	code += `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
+	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
 	if (selectedAttributes.length === 0) {
 		code += `);\n${tabs}}\n`;
 	} else {
@@ -128,11 +126,6 @@ export async function generateEquals(selectedAttributes: string[]): Promise<stri
 
 		code += `\n${tabs}\t);\n${tabs}}\n`;
 	}
-
-	/*if (createHashCode) {
-		code += await generateHashCode(selectedAttributes);
-	}*/
-
 	return code;
 }
 

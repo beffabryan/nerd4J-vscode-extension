@@ -5,23 +5,28 @@ import * as vscode from 'vscode';
 
 describe('generateEquals', () => {
 
+    const tabs = '';
+
     // test equals with selected attributes
-    it('should generate the correct code for equals method', () => {
+    it('should generate the correct code for equals method', async () => {
         const selectedAttributes = ['String name', 'int age', 'boolean isActive'];
-        const expectedCode = '\n@Override\npublic boolean equals(Object other) {\n\treturn Equals.ifSameClass(this, other,'
-        + '\n\t\to -> o.name, '
-        + '\n\t\to -> o.age, '
-        + '\n\t\to -> o.isActive'
-        + '\n\t);\n}';
-        
-        const generatedCode = generateEquals(selectedAttributes);
+        let expectedCode = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other,`
+            + `\n${tabs}\t\to -> o.name, `
+            + `\n${tabs}\t\to -> o.age, `
+            + `\n${tabs}\t\to -> o.isActive`
+            + `\n${tabs}\t);\n${tabs}}\n`;
+
+        const generatedCode = await generateEquals(selectedAttributes);
         assert.strictEqual(`${generatedCode}`.trim(), expectedCode.trim());
     });
 
     // test equals with empty selected attributes
-    it('should return an empty string when selected attributes are empty', () => {
+    it('should return an empty string when selected attributes are empty', async () => {
         const selectedAttributes: string[] = [];
-        const generatedCode = generateEquals(selectedAttributes);
-        assert.strictEqual(generatedCode, '');
+        const generatedCode = await generateEquals(selectedAttributes);
+
+        let expectedCode = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
+        expectedCode += `);\n${tabs}}\n`;
+        assert.strictEqual(generatedCode, expectedCode);
     });
 });

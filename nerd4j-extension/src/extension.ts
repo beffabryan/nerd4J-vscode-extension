@@ -245,7 +245,7 @@ export function activate(context: vscode.ExtensionContext) {
 							regenerateToString = true;
 						}
 					} else {
-						code += toString
+						code += toString;
 					}
 					if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
@@ -253,7 +253,7 @@ export function activate(context: vscode.ExtensionContext) {
 							regenerateEquals = true;
 						}
 					} else {
-						code += equals
+						code += equals;
 					}
 					if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
