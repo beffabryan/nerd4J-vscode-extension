@@ -419,7 +419,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const showContextMenu = vscode.commands.registerCommand('nerd4j-extension.showContextMenu', async () => {
 		const selectedOption = await vscode.window.showQuickPick(
 			[
-				{ label: 'toString() method', command: 'nerd4j-extension.generateToString' },
+				{ label: 'toString()', command: 'nerd4j-extension.generateToString' },
 				{ label: 'equals() and hashCode', command: 'nerd4j-extension.generateEquals' },
 				{ label: 'withField()', command: 'nerd4j-extension.generateWithField' },
 				{ label: 'all methods', command: 'nerd4j-extension.generateAllMethods' }

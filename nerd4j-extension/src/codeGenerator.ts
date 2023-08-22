@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 
 // check if method already exists
-export function checkIfMethodAlreadyExists(methodName: string) {
+export function checkIfMethodAlreadyExists(methodSignature: string) {
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
 
 	// check if to string exitst
-	return editorText?.includes(methodName);
+	return editorText?.includes(methodSignature);
 }
 
 // get package name
@@ -30,18 +30,19 @@ function checkJavadocComment(oldCodeIndex: number): number {
 	let ignoreChar = false;
 
 	for (index; index >= 0; index--) {
+		const currentChar = editorText.charAt(index);
 
-		if (editorText.charAt(index) === '/') {
+		if (currentChar === '/') {
 			if (editorText.charAt(index - 1) === '*') {
 				ignoreChar = true;
 			}
 		}
 
-		if (!ignoreChar && (editorText.charAt(index) === ';' || editorText.charAt(index) === '}' || editorText.charAt(index) === '{')) {
+		if (!ignoreChar && (currentChar === ';' || currentChar === '}' || currentChar === '{')) {
 			return oldCodeIndex;
 		}
 
-		if (editorText.charAt(index) === '*') {
+		if (currentChar === '*') {
 			if (editorText.charAt(index - 1) === '*') {
 				if (editorText.charAt(index - 2) === '/') {
 					return index - 2;
