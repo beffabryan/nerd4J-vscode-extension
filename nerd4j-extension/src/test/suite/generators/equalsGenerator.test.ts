@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'node:test';
 import { generateEquals } from '../../../codeGenerator';
-import * as vscode from 'vscode';
 
 describe('generateEquals', () => {
 

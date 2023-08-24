@@ -53,7 +53,7 @@
       },
       {
         "command": "nerd4j-extension.setCustomCompiledFolder",
-        "title": "Nerd4J: set cust  om compiled files folder"
+        "title": "Nerd4J: set custom compiled files folder"
       },
       {
         "command": "nerd4j-extension.deleteCustomCompiledFolder",
