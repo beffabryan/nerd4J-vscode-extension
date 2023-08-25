@@ -9,7 +9,9 @@ describe('generateEquals', () => {
     // test equals with selected attributes
     it('should generate the correct code for equals method', async () => {
         const selectedAttributes = ['String name', 'int age', 'boolean isActive'];
-        let expectedCode = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other,`
+        let expectedCode = `\n${tabs}/**\n${tabs} * ` 
+            + `{@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) `
+            + `{\n${tabs}\treturn Equals.ifSameClass(this, other,`
             + `\n${tabs}\t\to -> o.name, `
             + `\n${tabs}\t\to -> o.age, `
             + `\n${tabs}\t\to -> o.isActive`
@@ -24,8 +26,11 @@ describe('generateEquals', () => {
         const selectedAttributes: string[] = [];
         const generatedCode = await generateEquals(selectedAttributes);
 
-        let expectedCode = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
+        let expectedCode = `\n${tabs}/**\n${tabs} * `
+            + `{@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) `
+            + `{\n${tabs}\treturn Equals.ifSameClass(this, other`;
         expectedCode += `);\n${tabs}}\n`;
+        
         assert.strictEqual(generatedCode, expectedCode);
     });
 });
