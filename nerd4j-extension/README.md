@@ -14,8 +14,12 @@ By leveraging the full potential of the VS Code extension for Nerd4J, you can en
 ## Features
 The following commands are available in the VS Code command palette:
 
+<b>Compiled folder: </b>
+
 - <b>setCustomCompiledFolder</b>: sets a custom path for the folder containing the compiled Java files.
 - <b>deleteCustomCompiledFolder</b>: deletes the custom compiled folder path if it's set.
+
+<b>Generate: </b>
 
 The following "generate" commands are available in the VS Code command palette or context menu typing "Generate ...":
 - <b>generateToString</b>: generates the toString() method based on the selected fields.
@@ -23,5 +27,64 @@ The following "generate" commands are available in the VS Code command palette o
 - <b>generateEquals</b>: generates the equals() and hashCode() methods based on the selected fields.
 - <b>generateAllMethods</b>: generates the toString(), withField(), equals(), and hashCode() methods based on the selected fields.
 
-![Code generation GIF](https://gitlab-edu.supsi.ch/dti-isin/massimo.coluzzi/progetti-di-diploma/vscode-extensions/nerd4j-code-generator/-/blob/dev/gif/code_generation.gif)
+The <b>toString(), equals() </b>and <b>hashCode()</b> methods can be regenerated if they are already present. The java import of Ner4j library is automatically added if it is not already present.
 
+<b>Java Development Kit: </b>
+- <b>checkCurrentJDK</b>: checks and returns the current JDK version if it is set.
+- <b>setWorkspaceJDK</b>: sets the JDK version for the current workspace.
+- <b>recompileFileAnalyzer: </b> recompiles the FileAnalyzer class with the current jdk.
+
+
+### Commands
+<table>
+    <tr>
+        <th>Command name</th>
+        <th>Command palette</th>
+    </tr>
+    <tr>
+        <td>setCustomCompiledFolder</td>
+        <td>Nerd4J: set custom compiled files folder</td>
+    </tr>
+    <tr>
+        <td>deleteCustomCompiledFolder</td>
+        <td>Nerd4J: delete custom compiled files folder </td>
+    </tr>
+    <tr>
+        <td>showContextMenu</td>
+        <td>Nerd4J: generate </td>
+    </tr>
+    <tr>
+        <td>checkCurrentJDK</td>
+        <td>Nerd4J: check jdk version </td>
+    </tr>
+    <tr>
+        <td>setWorkspaceJDK</td>
+        <td>Nerd4J: set workspace jdk main folder </td>
+    </tr>
+    <tr>
+        <td>recompileFileAnalyzer</td>
+        <td>Nerd4J: recompile FileAnalyzer class </td>
+    </tr>
+</table>
+
+### Code snippets
+There are a few code snippets available for quickly importing the required libraries to use Nerd4J. 
+
+<b>Imports: </b>
+The editor via autocomplete will suggest the following Nerd4J library imports:
+
+- import org.nerd4j.utils.lang.*;
+- import org.nerd4j.utils.tuple.*;
+- import org.nerd4j.utils.math.*;
+- import org.nerd4j.utils.cache.*;
+
+<b> Dependencies: </b>
+The editor via autocomplete will suggest the Nerd4J library dependencies for the following dependency managers:
+
+- Apache Maven
+- Apache Ant
+- Apache Buildr
+- Groovy Grape
+- Grails
+- Leiningen
+- SBT

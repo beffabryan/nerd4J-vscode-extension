@@ -65,7 +65,7 @@
       },
       {
         "command": "nerd4j-extension.recompileFileAnalyzer",
-        "title": "Nerd4J: recompile file analyzer class"
+        "title": "Nerd4J: recompile FileAnalyzer class"
       },
       {
         "command": "nerd4j-extension.checkCurrentJDK",
