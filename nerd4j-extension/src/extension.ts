@@ -73,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//set workspace jdk command
 	const checkCurrentJDK = vscode.commands.registerCommand('nerd4j-extension.checkCurrentJDK', async () => {
 
-		const jdk = getCurrentJDK();
+		const jdk = await getCurrentJDK();
 
 		if (jdk) {
 			vscode.window.showInformationMessage('Current jdk version: ' + jdk);
