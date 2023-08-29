@@ -5,7 +5,7 @@ export const jdkQuickFix = { title: 'Set workspace JDK', command: 'nerd4j-extens
 
 export async function getCurrentJDK(): Promise<string> {
     const jdkPath = await vscode.workspace.getConfiguration().get(javaHome);
-    return Promise.resolve(`\"${jdkPath}\"`);
+    return jdkPath ? `${jdkPath}` : ''; 
 }
 
 export function setWorkspaceJDK(jdkPath: string) {
