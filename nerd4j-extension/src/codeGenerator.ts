@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 
-// check if method already exists
+/**
+ * Check if the method already exists in the current java file
+ * 
+ * @param methodSignature method signature to check 
+ * @returns true if the method already exists
+ */
 export function checkIfMethodAlreadyExists(methodSignature: string) {
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
@@ -9,14 +14,24 @@ export function checkIfMethodAlreadyExists(methodSignature: string) {
 	return editorText?.includes(methodSignature);
 }
 
-// get package name
-export function getPackageName(text: string) {
+/**
+ * Returns the package name of the current java file
+ * 
+ * @param code code of the current java file 
+ * @returns package name
+ */
+export function getPackageName(code: string) {
 	const packageRegExp: RegExp = /package\s+([a-zA-Z0-9.]+);/g;
-	const match = packageRegExp.exec(text!);
+	const match = packageRegExp.exec(code!);
 	return match ? match[1] : "";
 }
 
-// check if there is a javadoc comment
+/**
+ * Check if the there is a javadoc comment before the method
+ * 
+ * @param oldCodeIndex index of the old method code
+ * @returns index of the javadoc comment
+ */
 function checkJavadocComment(oldCodeIndex: number): number {
 
 	const editor = vscode.window.activeTextEditor;
@@ -54,7 +69,12 @@ function checkJavadocComment(oldCodeIndex: number): number {
 	return oldCodeIndex;
 }
 
-// remove old code
+/**
+ * Replace the old code with the new code
+ * 
+ * @param regex regex to find the old code
+ * @param newCode new code to replace the old code
+ */
 export async function replaceOldCode(regex: RegExp, newCode: string) {
 
 	const editor = vscode.window.activeTextEditor;
@@ -80,8 +100,14 @@ export async function replaceOldCode(regex: RegExp, newCode: string) {
 	}
 }
 
-// generate toString method
-export async function generateToStringCode(selectedAttributes: string[], selectedType: string): Promise<string> {
+/**
+ * Generate the code for the toString method
+ * 
+ * @param selectedAttributes selected attributes included in the toString method
+ * @param layoutType layout type of the toString method
+ * @returns toString method code generated
+ */
+export async function generateToStringCode(selectedAttributes: string[], layoutType: string): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public String toString() {\n${tabs}\treturn ToString.of(this)`;
@@ -93,11 +119,16 @@ export async function generateToStringCode(selectedAttributes: string[], selecte
 		}
 	}
 
-	code += `\n${tabs}\t\t.${selectedType}();\n${tabs}}\n`;
+	code += `\n${tabs}\t\t.${layoutType}();\n${tabs}}\n`;
 	return code;
 }
 
-// generate equals and hashcode method
+/**
+ * Generate the code for the equals method
+ * 
+ * @param selectedAttributes selected attributes included in the equals method
+ * @returns equals method code generated
+ */
 export async function generateEquals(selectedAttributes: string[]): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
@@ -125,7 +156,12 @@ export async function generateEquals(selectedAttributes: string[]): Promise<stri
 	return code;
 }
 
-// generate hashCode method
+/**
+ * Generate the code for the hashCode method
+ * 
+ * @param selectedAttributes selected attributes included in the hashCode method
+ * @returns hashCode method code generated
+ */
 export async function generateHashCode(selectedAttributes: string[]): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
@@ -153,7 +189,13 @@ export async function generateHashCode(selectedAttributes: string[]): Promise<st
 
 }
 
-// generate with methods 
+/**
+ * Generate the code for the whitFields method
+ * 
+ * @param selectedAttributes selected attributes included in the withFields method
+ * @param className name of the class
+ * @returns withFields method code generated
+ */
 export function generateWithFields(selectedAttributes: string[], className: string): string {
 
 	let code = '';
@@ -179,13 +221,22 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 	return code;
 }
 
-// insert the number of tabs
+/**
+ * Insert and returns the number of tabs to indent correctly the code
+ * 
+ * @param times number of tabs to insert
+ * @returns string of tabs
+ */
 function insertTab(times: number): string {
 	const character = '\t';
 	return character.repeat(times);
 }
 
-// returns the number of tabs to indent the code
+/**
+ * Returns the number of tabs needed to indent correctly the code
+ * 
+ * @returns number of tabs
+ */
 function getIndentation(): number {
 
 	const editor = vscode.window.activeTextEditor;

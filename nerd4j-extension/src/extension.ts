@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { checkIfMethodAlreadyExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, EQUALS_SIGNATURE, HASHCODE_IMPORT, HASHCODE_SIGNATURE, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_SIGNATURE } from './config';
+import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_SIGNATURE, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_SIGNATURE, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_SIGNATURE } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
@@ -14,6 +14,16 @@ const hashCode = [
 	{ label: 'create hashCode()', picked: true },
 ];
 
+/**
+ * Show dialog to select a folder
+ * 
+ * @param canSelectMany select many folders
+ * @param openLabel label of the open button
+ * @param title title of the dialog
+ * @param canSelectFolders select folders
+ * @returns the path of the selected folder
+ * 
+ */
 function showDialog(canSelectMany: boolean, openLabel: string, title: string, canSelectFolders: boolean): Promise<string | undefined> {
 	return new Promise((resolve) => {
 		const jdkMainFolder: vscode.OpenDialogOptions = {
@@ -33,6 +43,11 @@ function showDialog(canSelectMany: boolean, openLabel: string, title: string, ca
 	});
 }
 
+/**
+ * Method that returns the current jdk version
+ * 
+ * @returns the current jdk version
+ */
 async function getJDK() {
 	const currentJDK = await getCurrentJDK();
 	if (!currentJDK) {
@@ -48,9 +63,12 @@ async function getJDK() {
 	return Promise.resolve(currentJDK);
 }
 
+/**
+ * @inerhitDoc 
+ */
 export function activate(context: vscode.ExtensionContext) {
 
-	//set workspace jdk command
+	/* set workspace jdk command */
 	const setJDKWorkspace = vscode.commands.registerCommand('nerd4j-extension.setWorkspaceJDK', async () => {
 
 		const jdkMainFolder = await showDialog(false, 'Select', 'Select workspace jdk main folder', true);
@@ -97,7 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		const javacCommand = `${jdk}\\bin\\${JAVAC_COMMAND}`;
+		const javacCommand = path.join(jdk, "bin", JAVAC_COMMAND);
 
 		exec(javacCommand, (error, stdout, stderr) => {
 			if (error || stderr) {
@@ -142,23 +160,26 @@ export function activate(context: vscode.ExtensionContext) {
 					// remove old code
 					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
 						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
-						if (ans === "Regenerate") {
-
-							await replaceOldCode(toStringRegExp, toStringCode);
-							vscode.window.showInformationMessage("toString() method regenerated");
-
+						if (ans !== "Regenerate") {
+							return;
 						}
-						return;
+
+						await replaceOldCode(toStringRegExp, toStringCode);
+						vscode.window.showInformationMessage("toString() method regenerated");
+
+					} else {
+
+						const selection = editor.selection;
+						await editor.edit(editBuilder => {
+							editBuilder.insert(selection.end, toStringCode);
+						});
 					}
 
-					const selection = editor.selection;
 					await editor.edit(editBuilder => {
-
 						// add import if is not present
-						if (!checkIfImportExists(TO_STRING_IMPORT)) {
+						if (!checkIfImportExists(TO_STRING_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						}
-						editBuilder.insert(selection.end, toStringCode);
 					});
 				}
 			}
@@ -268,13 +289,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 					await editor.edit(editBuilder => {
 						// add imports if is not present
-						if (!checkIfImportExists(TO_STRING_IMPORT)) {
+						if (!checkIfImportExists(TO_STRING_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						}
-						if (!checkIfImportExists(EQUALS_IMPORT)) {
+						if (!checkIfImportExists(EQUALS_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
 						}
-						if (!checkIfImportExists(HASHCODE_IMPORT)) {
+						if (!checkIfImportExists(HASHCODE_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
 						}
 						editBuilder.insert(selection.end, code);
@@ -364,10 +385,10 @@ export function activate(context: vscode.ExtensionContext) {
 					await editor.edit(editBuilder => {
 
 						// add imports if is not present
-						if (!checkIfImportExists(EQUALS_IMPORT)) {
+						if (!checkIfImportExists(EQUALS_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
 						}
-						if (!checkIfImportExists(HASHCODE_IMPORT) && createHashCode) {
+						if (!checkIfImportExists(HASHCODE_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP) && createHashCode) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
 						}
 
@@ -482,7 +503,7 @@ function getFields(editableField: boolean = false): Promise<any> {
 					// get package name
 					const packageName = getPackageName(activeEditor.document.getText());
 					const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
-					const javaCommand = `${jdk}\\bin\\${JAVA_COMMAND} ${fullCompiledPath} ${classDefinition} ${editableField}`;
+					const javaCommand = `${path.join(jdk, 'bin', JAVA_COMMAND)} ${fullCompiledPath} ${classDefinition} ${editableField}`;
 
 					//check if the class file exists
 					const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
@@ -534,10 +555,27 @@ function getFields(editableField: boolean = false): Promise<any> {
 	});
 }
 
+/**
+ * Check if the import exists
+ * 
+ * @param importRegExp of the current java file
+ * @returns true if the import exists
+ */
+function checkIfImportExists(importRegExp: RegExp) {
+	const editor = vscode.window.activeTextEditor;
+	const editorText = editor?.document.getText();
+
+	const match = importRegExp.exec(editorText!);
+
+	return match ? true : false;
+}
+
+/**
+
 function checkIfImportExists(code: string) {
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
 
 	// check if to string exitst
 	return editorText?.includes(code);
-}
+}*/
