@@ -1,10 +1,12 @@
 import { join } from "path";
 
 const JAVA_ANALYZER_FOLDER: string = join(__dirname, '..', 'src', 'java'); 
-const JAVA_FILE_NAME: string = 'ClassAnalyzer';
-const JAVAC_PATH = join(JAVA_ANALYZER_FOLDER, `${JAVA_FILE_NAME}.java`)
+const JAVA_FILE_ANALYZER_NAME: string = 'ClassAnalyzer';
+const JAVA_WITHERS_SETTERS_ANALYZER_NAME: string = 'WithersSettersAnalyzer';
+const JAVAC_PATH = join(JAVA_ANALYZER_FOLDER, `${JAVA_FILE_ANALYZER_NAME}.java`)
 
-export const JAVA_COMMAND: string = `java -cp ${JAVA_ANALYZER_FOLDER} ${JAVA_FILE_NAME}`;
+export const FILE_ANALYZER_COMMAND: string = `java -cp ${JAVA_ANALYZER_FOLDER} ${JAVA_FILE_ANALYZER_NAME}`;
+export const SETTER_WITHERS_COMMAND: string = `java -cp ${JAVA_ANALYZER_FOLDER} ${JAVA_WITHERS_SETTERS_ANALYZER_NAME}`;
 export const JAVAC_COMMAND: string = `javac ${JAVAC_PATH}`;
 
 export const TO_STRING_IMPORT: string = 'import org.nerd4j.utils.lang.ToString;';

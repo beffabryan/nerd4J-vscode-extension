@@ -204,6 +204,7 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 	for (let i = 0; i < selectedAttributes.length; i++) {
 		const attributeType = selectedAttributes[i].split(" ")[0];
 		const attributeName = selectedAttributes[i].split(" ")[1];
+		const overrideMethod = selectedAttributes[i].split(" ")[2];
 
 		if (attributeName) {
 
@@ -222,7 +223,13 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 
 			//check if method already exists
 			if (!checkIfCodeExists(withFieldRegExp)) {
+				
+				// check if the method is overrided
+				if (overrideMethod === 'true') {
+					code += `\n${tabs}@Override`;
+				}
 				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}\treturn this;\n${tabs}}\n`;
+			
 			} else {
 				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
 			}
@@ -244,6 +251,7 @@ export function generateSetter(selectedAttributes: string[]): string {
 	for (let i = 0; i < selectedAttributes.length; i++) {
 		const attributeType = selectedAttributes[i].split(" ")[0];
 		const attributeName = selectedAttributes[i].split(" ")[1];
+		const overrideMethod = selectedAttributes[i].split(" ")[2];
 
 		if (attributeName) {
 
@@ -261,7 +269,13 @@ export function generateSetter(selectedAttributes: string[]): string {
 
 			//check if method already exists
 			if (!checkIfCodeExists(setterRegExp)) {
+
+				// check if the method is overrided
+				if (overrideMethod === 'true') {
+					code += `\n${tabs}@Override`;
+				}
 				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}\n`;
+
 			} else {
 				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
 			}

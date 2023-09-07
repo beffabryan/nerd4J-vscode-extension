@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { checkIfCodeExists, generateEquals, generateGetter, generateHashCode, generateSetter, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP } from './config';
+import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, FILE_ANALYZER_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, SETTER_WITHERS_COMMAND } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
@@ -188,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
 	//generate with field command
 	const withField = vscode.commands.registerCommand('nerd4j-extension.generateWithField', async () => {
 
-		await getFields(true);
+		await getFields(true, true);
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes'
@@ -211,57 +211,6 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	//generate setter command
-	const setter = vscode.commands.registerCommand('nerd4j-extension.generateSetter', async () => {
-
-		await getFields(true);
-		const selectedOptions = await vscode.window.showQuickPick(options, {
-			canPickMany: true,
-			placeHolder: 'Select attributes'
-		});
-
-		if (selectedOptions) {
-			const selectedAttributes = selectedOptions.map(option => option.label);
-
-			const setterCode = generateSetter(selectedAttributes);
-
-			const editor = vscode.window.activeTextEditor;
-			if (editor) {
-				const selection = editor.selection;
-
-				editor.edit(editBuilder => {
-					editBuilder.insert(selection.end, setterCode);
-				});
-			}
-
-		}
-	});
-
-	//generate getter command
-	const getter = vscode.commands.registerCommand('nerd4j-extension.generateGetter', async () => {
-
-		await getFields();
-		const selectedOptions = await vscode.window.showQuickPick(options, {
-			canPickMany: true,
-			placeHolder: 'Select attributes'
-		});
-
-		if (selectedOptions) {
-			const selectedAttributes = selectedOptions.map(option => option.label);
-
-			const getterCode = generateGetter(selectedAttributes);
-
-			const editor = vscode.window.activeTextEditor;
-			if (editor) {
-				const selection = editor.selection;
-
-				editor.edit(editBuilder => {
-					editBuilder.insert(selection.end, getterCode);
-				});
-			}
-
-		}
-	});
 
 	//generate getter and setter command
 	const getterAndSetter = vscode.commands.registerCommand('nerd4j-extension.generateGetterAndSetter', async () => {
@@ -308,7 +257,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (createSetter) {
 			/* Generate setter methods */
-			await getFields(true);
+			await getFields(true, false);
 			const selectedOptions = await vscode.window.showQuickPick(options, {
 				canPickMany: true,
 				placeHolder: 'Select attributes for setter methods'
@@ -554,8 +503,8 @@ export function activate(context: vscode.ExtensionContext) {
 				{ label: 'toString()', command: 'nerd4j-extension.generateToString' },
 				{ label: 'equals() and hashCode', command: 'nerd4j-extension.generateEquals' },
 				{ label: 'withField()', command: 'nerd4j-extension.generateWithField' },
-				{ label: 'getter and setter methods', command: 'nerd4j-extension.generateGetterAndSetter' },
-				{ label: 'all methods', command: 'nerd4j-extension.generateAllMethods' }
+				{ label: 'getter and setter methods', command: 'nerd4j-extension.generateGetterAndSetter' }/*,
+				{ label: 'all methods', command: 'nerd4j-extension.generateAllMethods' }*/
 			],
 			{ placeHolder: 'Generate' }
 		);
@@ -581,7 +530,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // get fields using java reflection
-function getFields(editableField: boolean = false): Promise<any> {
+function getFields(modifiableOnly: boolean = false, withersOnly: boolean = true): Promise<any> {
 	return new Promise(async (resolve, reject) => {
 
 		// get root path
@@ -616,7 +565,8 @@ function getFields(editableField: boolean = false): Promise<any> {
 					// get package name
 					const packageName = getPackageName(activeEditor.document.getText());
 					const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
-					const javaCommand = `${path.join(jdk, 'bin', JAVA_COMMAND)} ${fullCompiledPath} ${classDefinition} ${editableField}`;
+					const javaCommand = modifiableOnly ? `${path.join(jdk, 'bin', SETTER_WITHERS_COMMAND)} ${fullCompiledPath} ${classDefinition} ${withersOnly}`
+						: `${path.join(jdk, 'bin', FILE_ANALYZER_COMMAND)} ${fullCompiledPath} ${classDefinition} ${modifiableOnly}`;
 
 					//check if the class file exists
 					const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
