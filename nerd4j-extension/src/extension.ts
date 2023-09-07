@@ -223,14 +223,14 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selectedOptions) {
 			const selectedAttributes = selectedOptions.map(option => option.label);
 
-			const withFieldCode = generateSetter(selectedAttributes);
+			const setterCode = generateSetter(selectedAttributes);
 
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {
 				const selection = editor.selection;
 
 				editor.edit(editBuilder => {
-					editBuilder.insert(selection.end, withFieldCode);
+					editBuilder.insert(selection.end, setterCode);
 				});
 			}
 
@@ -249,15 +249,56 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selectedOptions) {
 			const selectedAttributes = selectedOptions.map(option => option.label);
 
-			const withFieldCode = generateGetter(selectedAttributes);
+			const getterCode = generateGetter(selectedAttributes);
 
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {
 				const selection = editor.selection;
 
 				editor.edit(editBuilder => {
-					editBuilder.insert(selection.end, withFieldCode);
+					editBuilder.insert(selection.end, getterCode);
 				});
+			}
+
+		}
+	});
+
+	//generate getter and setter command
+	const getterAndSetter = vscode.commands.registerCommand('nerd4j-extension.generateGetterAndSetter', async () => {
+
+		/* Generate getter methods */
+		await getFields();
+		let selectedOptions = await vscode.window.showQuickPick(options, {
+			canPickMany: true,
+			placeHolder: 'Select attributes for getter methods'
+		});
+
+		let code = '';
+
+		if (selectedOptions) {
+			const selectedAttributes = selectedOptions.map(option => option.label);
+
+			code += generateGetter(selectedAttributes);
+
+			/* Generate setter methods */
+			await getFields(true);
+			selectedOptions = await vscode.window.showQuickPick(options, {
+				canPickMany: true,
+				placeHolder: 'Select attributes for setter methods'
+			});
+
+			if (selectedOptions) {
+				const selectedAttributes = selectedOptions.map(option => option.label);
+
+				code += generateSetter(selectedAttributes);
+				const editor = vscode.window.activeTextEditor;
+				if (editor) {
+					const selection = editor.selection;
+
+					editor.edit(editBuilder => {
+						editBuilder.insert(selection.end, code);
+					});
+				}
 			}
 
 		}
@@ -489,6 +530,7 @@ export function activate(context: vscode.ExtensionContext) {
 				{ label: 'withField()', command: 'nerd4j-extension.generateWithField' },
 				{ label: 'setter methods', command: 'nerd4j-extension.generateSetter' },
 				{ label: 'getter methods', command: 'nerd4j-extension.generateGetter' },
+				{ label: 'getter and setter methods', command: 'nerd4j-extension.generateGetterAndSetter' },
 				{ label: 'all methods', command: 'nerd4j-extension.generateAllMethods' }
 			],
 			{ placeHolder: 'Generate' }
