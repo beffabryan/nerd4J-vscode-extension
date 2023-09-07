@@ -266,41 +266,67 @@ export function activate(context: vscode.ExtensionContext) {
 	//generate getter and setter command
 	const getterAndSetter = vscode.commands.registerCommand('nerd4j-extension.generateGetterAndSetter', async () => {
 
-		/* Generate getter methods */
-		await getFields();
-		let selectedOptions = await vscode.window.showQuickPick(options, {
+		let createGetter: any = false;
+		let createSetter: any = false;
+		let code = '';
+		const getterLabel = 'getter methods';
+		const setterLabel = 'setter methods';
+
+		let createOptions: vscode.QuickPickItem[] = [];
+		createOptions.push({ label: getterLabel, picked: true });
+		createOptions.push({ label: setterLabel, picked: true });
+
+		const createMethods = await vscode.window.showQuickPick(createOptions, {
 			canPickMany: true,
-			placeHolder: 'Select attributes for getter methods'
+			placeHolder: 'Select methods to generate'
 		});
 
-		let code = '';
 
-		if (selectedOptions) {
-			const selectedAttributes = selectedOptions.map(option => option.label);
+		for (let i = 0; i < createMethods!.length; i++) {
+			if (createMethods![i].label === getterLabel) {
+				createGetter = createMethods![i].picked;
+			} else if (createMethods![i].label === setterLabel) {
+				createSetter = createMethods![i].picked;
+			}
+		}
 
-			code += generateGetter(selectedAttributes);
+		if (createGetter) {
 
+			/* Generate getter methods */
+			await getFields();
+			const selectedOptions = await vscode.window.showQuickPick(options, {
+				canPickMany: true,
+				placeHolder: 'Select attributes for getter methods'
+			});
+
+
+			if (selectedOptions) {
+				const selectedAttributes = selectedOptions.map(option => option.label);
+				code += generateGetter(selectedAttributes);
+			}
+		}
+
+		if (createSetter) {
 			/* Generate setter methods */
 			await getFields(true);
-			selectedOptions = await vscode.window.showQuickPick(options, {
+			const selectedOptions = await vscode.window.showQuickPick(options, {
 				canPickMany: true,
 				placeHolder: 'Select attributes for setter methods'
 			});
 
 			if (selectedOptions) {
 				const selectedAttributes = selectedOptions.map(option => option.label);
-
 				code += generateSetter(selectedAttributes);
-				const editor = vscode.window.activeTextEditor;
-				if (editor) {
-					const selection = editor.selection;
-
-					editor.edit(editBuilder => {
-						editBuilder.insert(selection.end, code);
-					});
-				}
 			}
+		}
 
+		const editor = vscode.window.activeTextEditor;
+		if (editor) {
+			const selection = editor.selection;
+
+			editor.edit(editBuilder => {
+				editBuilder.insert(selection.end, code);
+			});
 		}
 	});
 
@@ -528,8 +554,6 @@ export function activate(context: vscode.ExtensionContext) {
 				{ label: 'toString()', command: 'nerd4j-extension.generateToString' },
 				{ label: 'equals() and hashCode', command: 'nerd4j-extension.generateEquals' },
 				{ label: 'withField()', command: 'nerd4j-extension.generateWithField' },
-				{ label: 'setter methods', command: 'nerd4j-extension.generateSetter' },
-				{ label: 'getter methods', command: 'nerd4j-extension.generateGetter' },
 				{ label: 'getter and setter methods', command: 'nerd4j-extension.generateGetterAndSetter' },
 				{ label: 'all methods', command: 'nerd4j-extension.generateAllMethods' }
 			],
@@ -552,6 +576,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(equals);
 	context.subscriptions.push(setCustomCompiledFolder);
 	context.subscriptions.push(deleteCustomCompiledFolder);
+	context.subscriptions.push(getterAndSetter);
 	context.subscriptions.push(showContextMenu);
 }
 
