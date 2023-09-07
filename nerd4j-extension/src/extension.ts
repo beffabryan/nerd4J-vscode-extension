@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { checkIfCodeExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
+import { checkIfCodeExists, generateEquals, generateGetter, generateHashCode, generateSetter, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
 import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP } from './config';
@@ -198,6 +198,58 @@ export function activate(context: vscode.ExtensionContext) {
 			const selectedAttributes = selectedOptions.map(option => option.label);
 
 			const withFieldCode = generateWithFields(selectedAttributes, className);
+
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				const selection = editor.selection;
+
+				editor.edit(editBuilder => {
+					editBuilder.insert(selection.end, withFieldCode);
+				});
+			}
+
+		}
+	});
+
+	//generate setter command
+	const setter = vscode.commands.registerCommand('nerd4j-extension.generateSetter', async () => {
+
+		await getFields(true);
+		const selectedOptions = await vscode.window.showQuickPick(options, {
+			canPickMany: true,
+			placeHolder: 'Select attributes'
+		});
+
+		if (selectedOptions) {
+			const selectedAttributes = selectedOptions.map(option => option.label);
+
+			const withFieldCode = generateSetter(selectedAttributes);
+
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				const selection = editor.selection;
+
+				editor.edit(editBuilder => {
+					editBuilder.insert(selection.end, withFieldCode);
+				});
+			}
+
+		}
+	});
+
+	//generate getter command
+	const getter = vscode.commands.registerCommand('nerd4j-extension.generateGetter', async () => {
+
+		await getFields();
+		const selectedOptions = await vscode.window.showQuickPick(options, {
+			canPickMany: true,
+			placeHolder: 'Select attributes'
+		});
+
+		if (selectedOptions) {
+			const selectedAttributes = selectedOptions.map(option => option.label);
+
+			const withFieldCode = generateGetter(selectedAttributes);
 
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {
@@ -435,6 +487,8 @@ export function activate(context: vscode.ExtensionContext) {
 				{ label: 'toString()', command: 'nerd4j-extension.generateToString' },
 				{ label: 'equals() and hashCode', command: 'nerd4j-extension.generateEquals' },
 				{ label: 'withField()', command: 'nerd4j-extension.generateWithField' },
+				{ label: 'setter methods', command: 'nerd4j-extension.generateSetter' },
+				{ label: 'getter methods', command: 'nerd4j-extension.generateGetter' },
 				{ label: 'all methods', command: 'nerd4j-extension.generateAllMethods' }
 			],
 			{ placeHolder: 'Generate' }

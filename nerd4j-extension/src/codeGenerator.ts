@@ -191,11 +191,11 @@ export async function generateHashCode(selectedAttributes: string[]): Promise<st
 }
 
 /**
- * Generate the code for the whitFields method
+ * Generate the code for the whitField methods
  * 
- * @param selectedAttributes selected attributes included in the withFields method
+ * @param selectedAttributes selected attributes included in the withField methods
  * @param className name of the class
- * @returns withFields method code generated
+ * @returns withField methods code generated
  */
 export function generateWithFields(selectedAttributes: string[], className: string): string {
 
@@ -211,7 +211,7 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 
 			//set first letter to upper case
 			const methodName = 'with' + attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
-			const methodSignature = `public ${className} ${methodName}(${attributeType} value)`;
+			const methodSignature = `public ${className} ${methodName}(${attributeType} ${attributeName})`;
 
 			//escape special characters
 			const escapedClassName = className.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -222,9 +222,86 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 
 			//check if method already exists
 			if (!checkIfCodeExists(withFieldRegExp)) {
-				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = value;\n${tabs}\treturn this;\n${tabs}}\n`;
+				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}\treturn this;\n${tabs}}\n`;
 			} else {
-				vscode.window.showInformationMessage(`Method ${methodName} already exists`);
+				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
+			}
+		}
+	}
+	return code;
+}
+
+/**
+ * Generate the code for the setter methods
+ * 
+ * @param selectedAttributes selected attributes included in the setter methods
+ * @returns setter methods code generated
+ */
+export function generateSetter(selectedAttributes: string[]): string {
+
+	let code = '';
+
+	for (let i = 0; i < selectedAttributes.length; i++) {
+		const attributeType = selectedAttributes[i].split(" ")[0];
+		const attributeName = selectedAttributes[i].split(" ")[1];
+
+		if (attributeName) {
+
+			const tabs = insertTab(getIndentation());
+
+			//set first letter to upper case
+			const methodName = 'set' + attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
+			const methodSignature = `public void ${methodName}(${attributeType} ${attributeName})`;
+
+			//escape special characters
+			const escapedMethodName = methodName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+			const setterRegExpPattern = `public\\s+void\\s+${escapedMethodName}\\s*\\(\\s*[^\\s]+\\s+[^\\s]+\\s*\\)\\s*\\{`;
+
+			const setterRegExp = new RegExp(setterRegExpPattern);
+
+			//check if method already exists
+			if (!checkIfCodeExists(setterRegExp)) {
+				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}\n`;
+			} else {
+				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
+			}
+		}
+	}
+	return code;
+}
+
+/**
+ * Generate the code for the etgter methods
+ * 
+ * @param selectedAttributes selected attributes included in the getter methods
+ * @returns getter methods code generated
+ */
+export function generateGetter(selectedAttributes: string[]): string {
+
+	let code = '';
+
+	for (let i = 0; i < selectedAttributes.length; i++) {
+		const attributeType = selectedAttributes[i].split(" ")[0];
+		const attributeName = selectedAttributes[i].split(" ")[1];
+
+		if (attributeName) {
+
+			const tabs = insertTab(getIndentation());
+
+			//set first letter to upper case
+			const methodName = 'get' + attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
+			const methodSignature = `public ${attributeType} ${methodName}()`;
+
+			//escape special characters
+			const escapedMethodName = methodName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+			const getterRegExpPattern = `public\\s+${attributeType}\\s+${escapedMethodName}\\s*\\(\\s*\\)\\s*\\{`;
+			const getterRegExp = new RegExp(getterRegExpPattern);
+
+			//check if method already exists
+			if (!checkIfCodeExists(getterRegExp)) {
+				code += `\n${tabs}${methodSignature} {\n${tabs}\treturn ${attributeName};\n${tabs}}\n`;
+			} else {
+				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
 			}
 		}
 	}

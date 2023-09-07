@@ -4,6 +4,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class ClassAnalyzer
     {
 
         /* Check if the directory exists. */
-        final Path compiledFiles = Path.of( compiledFilesFolder );
+        final Path compiledFiles = Paths.get( compiledFilesFolder );
         if( ! Files.exists(compiledFiles) )
             throw new NoSuchFileException( "The given folder '" + compiledFilesFolder + "' does not exist" );
 
@@ -281,18 +282,11 @@ public class ClassAnalyzer
                 .map( ClassAnalyzer::toOutputForm )
                 .forEach( System.out::println );
             
-        }catch( UnsupportedClassVersionError ex )
-        {
-
+        } catch ( UnsupportedClassVersionError ex ) {
             System.err.println( "Unsupported class version" );
-
-        }catch( Exception e )
-        {
-
+        } catch ( Exception e ){
             System.err.println( e.getMessage() );
-
         }
-
     }
 
 }
