@@ -16,10 +16,6 @@ export const HASHCODE_IMPORT_REGEXP: RegExp = /import\s+org.nerd4j.utils.lang.Ha
 export const EQUALS_IMPORT_REGEXP: RegExp = /import\s+org.nerd4j.utils.lang.Equals\s*;\s*/;
 export const GLOBAL_IMPORT_REGEXP: RegExp = /import\s+org.nerd4j.utils.lang.\*\s*;\s*/;
 
-export const TO_STRING_SIGNATURE: string = 'public String toString()';
-export const EQUALS_SIGNATURE: string = 'public boolean equals(Object other)';
-export const HASHCODE_SIGNATURE: string = 'public int hashCode()';
-
 export const TO_STRING_REGEXP: RegExp = /public\s+String\s+toString\s*\(\s*\)\s*\{[^}]*\}/;
 export const EQUALS_REGEXP: RegExp = /public\s+boolean\s+equals\s*\(\s*Object[^,]*\)\s*\{[^}]*\}/;
 export const HASHCODE_REGEXP: RegExp = /public\s+int\s+hashCode\s*\(\s*\)\s*\{[^}]*\}/;

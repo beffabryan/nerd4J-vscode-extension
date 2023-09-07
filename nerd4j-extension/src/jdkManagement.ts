@@ -12,6 +12,20 @@ export const jdkQuickFix = { title: 'Set workspace JDK', command: 'nerd4j-extens
  * @returns the path of the current JDK 
  */
 export async function getCurrentJDK(): Promise<string> {
+
+    // verify if the java extension is installed
+    const javaExtension = vscode.extensions.getExtension('vscjava.vscode-java-pack');
+    
+    if (javaExtension) {
+        // L'estensione pack di Java è installata
+        vscode.window.showInformationMessage('L\'estensione pack di Java è installata e abilita.');
+
+
+    } else {
+        // L'estensione pack di Java non è installata
+        vscode.window.showWarningMessage('L\'estensione pack di Java non è installata.');
+    }
+
     const jdkPath = await vscode.workspace.getConfiguration().get(JAVA_HOME);
     return jdkPath ? `${jdkPath}` : ''; 
 }

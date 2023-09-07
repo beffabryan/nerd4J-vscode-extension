@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { checkIfCodeExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, EQUALS_SIGNATURE, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, HASHCODE_SIGNATURE, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, TO_STRING_SIGNATURE } from './config';
+import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
@@ -214,10 +214,6 @@ export function activate(context: vscode.ExtensionContext) {
 	//all methods command
 	const allMethods = vscode.commands.registerCommand('nerd4j-extension.generateAllMethods', async () => {
 		await getFields();
-
-		const equalsRegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-		const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
-		const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
 
 		let selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
