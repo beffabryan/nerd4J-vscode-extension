@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { checkIfMethodAlreadyExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
+import { checkIfCodeExists, generateEquals, generateHashCode, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_SIGNATURE, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_SIGNATURE, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_SIGNATURE } from './config';
+import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, EQUALS_SIGNATURE, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, HASHCODE_SIGNATURE, JAVA_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, TO_STRING_SIGNATURE } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
@@ -136,7 +136,6 @@ export function activate(context: vscode.ExtensionContext) {
 	const toString = vscode.commands.registerCommand('nerd4j-extension.generateToString', async () => {
 
 		await getFields();
-		const toStringRegExp = /@Override\s*public\s*String\s*toString\(\)\s*\{[^}]*\}/g;
 
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
@@ -158,13 +157,13 @@ export function activate(context: vscode.ExtensionContext) {
 				if (editor) {
 
 					// remove old code
-					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
+					if (checkIfCodeExists(TO_STRING_REGEXP)) {
 						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
 						if (ans !== "Regenerate") {
 							return;
 						}
 
-						await replaceOldCode(toStringRegExp, toStringCode);
+						await replaceOldCode(TO_STRING_REGEXP, toStringCode);
 						vscode.window.showInformationMessage("toString() method regenerated");
 
 					} else {
@@ -177,7 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 					await editor.edit(editBuilder => {
 						// add import if is not present
-						if (!checkIfImportExists(TO_STRING_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
+						if (!checkIfCodeExists(TO_STRING_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						}
 					});
@@ -260,7 +259,7 @@ export function activate(context: vscode.ExtensionContext) {
 					let regenerateHashCode: boolean = false;
 
 					// remove old code
-					if (checkIfMethodAlreadyExists(TO_STRING_SIGNATURE)) {
+					if (checkIfCodeExists(TO_STRING_REGEXP)) {
 						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
 							regenerateToString = true;
@@ -268,7 +267,7 @@ export function activate(context: vscode.ExtensionContext) {
 					} else {
 						code += toString;
 					}
-					if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
+					if (checkIfCodeExists(EQUALS_REGEXP)) {
 						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
 							regenerateEquals = true;
@@ -276,7 +275,7 @@ export function activate(context: vscode.ExtensionContext) {
 					} else {
 						code += equals;
 					}
-					if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
+					if (checkIfCodeExists(HASHCODE_REGEXP)) {
 						const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
 							regenerateHashCode = true;
@@ -289,13 +288,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 					await editor.edit(editBuilder => {
 						// add imports if is not present
-						if (!checkIfImportExists(TO_STRING_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
+						if (!checkIfCodeExists(TO_STRING_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
 						}
-						if (!checkIfImportExists(EQUALS_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
+						if (!checkIfCodeExists(EQUALS_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
 						}
-						if (!checkIfImportExists(HASHCODE_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
+						if (!checkIfCodeExists(HASHCODE_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
 						}
 						editBuilder.insert(selection.end, code);
@@ -303,15 +302,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 					// delete old code
 					if (regenerateToString) {
-						await replaceOldCode(toStringRegExp, toString);
+						await replaceOldCode(TO_STRING_REGEXP, toString);
 						vscode.window.showInformationMessage("toString() method regenerated");
 					}
 					if (regenerateEquals) {
-						await replaceOldCode(equalsRegExp, equals);
+						await replaceOldCode(EQUALS_REGEXP, equals);
 						vscode.window.showInformationMessage("equals() method regenerated");
 					}
 					if (regenerateHashCode) {
-						await replaceOldCode(hashCodeRegExp, hashCode);
+						await replaceOldCode(HASHCODE_REGEXP, hashCode);
 						vscode.window.showInformationMessage("hashCode() method regenerated");
 					}
 				}
@@ -323,9 +322,6 @@ export function activate(context: vscode.ExtensionContext) {
 	const equals = vscode.commands.registerCommand('nerd4j-extension.generateEquals', async () => {
 
 		await getFields();
-
-		const equalsRegExp = /@Override\s*public\s*boolean\s*equals\(Object\s*other\)\s*\{[^}]*\}/g;
-		const hashCodeRegExp = /@Override\s*public\s*int\s*hashCode\(\)\s*\{[^}]*\}/g;
 
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
@@ -357,7 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
 					let regenerateHashCode: boolean = false;
 
 					// check and remove old equals code
-					if (checkIfMethodAlreadyExists(EQUALS_SIGNATURE)) {
+					if (checkIfCodeExists(EQUALS_REGEXP)) {
 						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
 						if (ans === "Regenerate") {
 							regenerateEquals = true;
@@ -372,7 +368,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 						hashCode = await generateHashCode(selectedAttributes);
 
-						if (checkIfMethodAlreadyExists(HASHCODE_SIGNATURE)) {
+						if (checkIfCodeExists(HASHCODE_REGEXP)) {
 							const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
 							if (ans === "Regenerate") {
 								regenerateHashCode = true;
@@ -385,10 +381,10 @@ export function activate(context: vscode.ExtensionContext) {
 					await editor.edit(editBuilder => {
 
 						// add imports if is not present
-						if (!checkIfImportExists(EQUALS_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP)) {
+						if (!checkIfCodeExists(EQUALS_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
 						}
-						if (!checkIfImportExists(HASHCODE_IMPORT_REGEXP) && !checkIfImportExists(GLOBAL_IMPORT_REGEXP) && createHashCode) {
+						if (!checkIfCodeExists(HASHCODE_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP) && createHashCode) {
 							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
 						}
 
@@ -398,11 +394,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 					// delete old code
 					if (regenerateEquals) {
-						await replaceOldCode(equalsRegExp, equalsCode);
+						await replaceOldCode(EQUALS_REGEXP, equalsCode);
 						vscode.window.showInformationMessage("equals() method regenerated");
 					}
 					if (regenerateHashCode) {
-						await replaceOldCode(hashCodeRegExp, hashCode);
+						await replaceOldCode(HASHCODE_REGEXP, hashCode);
 						vscode.window.showInformationMessage("hashCode() method regenerated");
 					}
 				}
@@ -554,28 +550,3 @@ function getFields(editableField: boolean = false): Promise<any> {
 		}
 	});
 }
-
-/**
- * Check if the import exists
- * 
- * @param importRegExp of the current java file
- * @returns true if the import exists
- */
-function checkIfImportExists(importRegExp: RegExp) {
-	const editor = vscode.window.activeTextEditor;
-	const editorText = editor?.document.getText();
-
-	const match = importRegExp.exec(editorText!);
-
-	return match ? true : false;
-}
-
-/**
-
-function checkIfImportExists(code: string) {
-	const editor = vscode.window.activeTextEditor;
-	const editorText = editor?.document.getText();
-
-	// check if to string exitst
-	return editorText?.includes(code);
-}*/

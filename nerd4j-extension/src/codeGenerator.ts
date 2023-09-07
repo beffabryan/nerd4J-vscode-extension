@@ -1,17 +1,18 @@
 import * as vscode from 'vscode';
 
 /**
- * Check if the method already exists in the current java file
+ * Check if the import exists
  * 
- * @param methodSignature method signature to check 
- * @returns true if the method already exists
+ * @param importRegExp of the current java file
+ * @returns true if the import exists
  */
-export function checkIfMethodAlreadyExists(methodSignature: string) {
+export function checkIfCodeExists(importRegExp: RegExp) {
 	const editor = vscode.window.activeTextEditor;
 	const editorText = editor?.document.getText();
 
-	// check if to string exitst
-	return editorText?.includes(methodSignature);
+	const match = importRegExp.exec(editorText!);
+
+	return match ? true : false;
 }
 
 /**
@@ -212,9 +213,18 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 			const methodName = 'with' + attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
 			const methodSignature = `public ${className} ${methodName}(${attributeType} value)`;
 
+			//escape special characters
+			const escapedClassName = className.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+			const escapedMethodName = methodName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+			const withFieldRegExpPattern = `public\\s+${escapedClassName}\\s+${escapedMethodName}\\s*\\(\\s*[^\\s]+\\s+[^\\s]+\\s*\\)\\s*\\{`;
+
+			const withFieldRegExp = new RegExp(withFieldRegExpPattern);
+
 			//check if method already exists
-			if (!checkIfMethodAlreadyExists(methodSignature)) {
+			if (!checkIfCodeExists(withFieldRegExp)) {
 				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = value;\n${tabs}\treturn this;\n${tabs}}\n`;
+			} else {
+				vscode.window.showInformationMessage(`Method ${methodName} already exists`);
 			}
 		}
 	}
