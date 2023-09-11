@@ -224,13 +224,13 @@ export function generateWithFields(selectedAttributes: vscode.QuickPickItem[], c
 
 			//check if method already exists
 			if (!checkIfCodeExists(withFieldRegExp)) {
-				
+
 				// check if the method is overrided
 				if (overrideMethod === PARENT_IMPLEMENTATION) {
 					code += `\n${tabs}@Override`;
 				}
 				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}\treturn this;\n${tabs}}\n`;
-			
+
 			} else {
 				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
 			}
@@ -245,7 +245,7 @@ export function generateWithFields(selectedAttributes: vscode.QuickPickItem[], c
  * @param selectedAttributes selected attributes included in the setter methods
  * @returns setter methods code generated
  */
-export function generateSetter(selectedAttributes: vscode.QuickPickItem[]): string {
+export async function generateSetter(selectedAttributes: vscode.QuickPickItem[]): Promise<string> {
 
 	let code = '';
 
@@ -264,21 +264,30 @@ export function generateSetter(selectedAttributes: vscode.QuickPickItem[]): stri
 
 			//escape special characters
 			const escapedMethodName = methodName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-			const setterRegExpPattern = `public\\s+void\\s+${escapedMethodName}\\s*\\(\\s*[^\\s]+\\s+[^\\s]+\\s*\\)\\s*\\{`;
+			const setterRegExpPattern = `(@Override)*\\s*public\\s+void\\s+${escapedMethodName}\\s*\\(\\s*[^\\s]+\\s+[^\\s]+\\s*\\)\\s*\\{[^}]*\\}`;
 
 			const setterRegExp = new RegExp(setterRegExpPattern);
 
+			// check if the method is overrided
+			let override = '';
+			if (overrideMethod === PARENT_IMPLEMENTATION) {
+				override += `\n${tabs}@Override`;
+			}
+
 			//check if method already exists
 			if (!checkIfCodeExists(setterRegExp)) {
-				
-				// check if the method is overrided
-				if (overrideMethod === PARENT_IMPLEMENTATION) {
-					code += `\n${tabs}@Override`;
-				}
-				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}\n`;
-
+				code += `${override}\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}\n`;
 			} else {
-				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
+
+				// regenerates the method
+				const ans = await vscode.window.showInformationMessage(`The ${methodName}(${attributeType} ${attributeName}) method is already implemented.`, "Regenerate", "Cancel");
+				if (ans === "Regenerate") {
+
+					const newCode = `${override}\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}`;
+					await replaceOldCode(setterRegExp, newCode);
+					vscode.window.showInformationMessage(`${methodName}(${attributeType} ${attributeName}) method regenerated`);
+
+				}
 			}
 		}
 	}
@@ -286,7 +295,7 @@ export function generateSetter(selectedAttributes: vscode.QuickPickItem[]): stri
 }
 
 /**
- * Generate the code for the etgter methods
+ * Generate the code for the getter methods
  * 
  * @param selectedAttributes selected attributes included in the getter methods
  * @returns getter methods code generated
@@ -315,7 +324,7 @@ export function generateGetter(selectedAttributes: vscode.QuickPickItem[]): stri
 
 			//check if method already exists
 			if (!checkIfCodeExists(getterRegExp)) {
-				
+
 				// check if the method is overrided
 				if (overrideMethod === PARENT_IMPLEMENTATION) {
 					code += `\n${tabs}@Override`;

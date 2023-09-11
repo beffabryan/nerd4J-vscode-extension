@@ -253,6 +253,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		if (createSetter) {
+
 			/* Generate setter methods */
 			await getFields("set");
 			const selectedOptions = await vscode.window.showQuickPick(options, {
@@ -261,7 +262,7 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 
 			if (selectedOptions) {
-				code += generateSetter(selectedOptions);
+				code += await generateSetter(selectedOptions);
 			}
 		}
 
@@ -272,107 +273,6 @@ export function activate(context: vscode.ExtensionContext) {
 			await editor.edit(editBuilder => {
 				editBuilder.insert(selection.end, code);
 			});
-		}
-	});
-
-	//all methods command
-	const allMethods = vscode.commands.registerCommand('nerd4j-extension.generateAllMethods', async () => {
-		await getFields();
-
-		let selectedOptions = await vscode.window.showQuickPick(options, {
-			canPickMany: true,
-			placeHolder: 'Select attributes for toString, equals and hashCode'
-		});
-
-		const selectionType = await vscode.window.showQuickPick(
-			printers,
-			{ placeHolder: 'Select a layout' }
-		);
-
-		// select attributres for toString, equals and hashCode
-		if (selectedOptions && selectionType) {
-
-			const toString = await generateToStringCode(selectedOptions, selectionType);
-			const equals = await generateEquals(selectedOptions);
-			const hashCode = await generateHashCode(selectedOptions);
-
-			let code = '';
-
-			// select attributres for withField
-			await getFields("with");
-			selectedOptions = await vscode.window.showQuickPick(options, {
-				canPickMany: true,
-				placeHolder: 'Select attributes for withField'
-			});
-
-			if (selectedOptions) {
-				const withFieldCode = generateWithFields(selectedOptions, className);
-
-				const editor = vscode.window.activeTextEditor;
-				if (editor) {
-					const selection = editor.selection;
-
-					let regenerateToString: boolean = false;
-					let regenerateEquals: boolean = false;
-					let regenerateHashCode: boolean = false;
-
-					// remove old code
-					if (checkIfCodeExists(TO_STRING_REGEXP)) {
-						const ans = await vscode.window.showInformationMessage("The toString() method is already implemented.", "Regenerate", "Cancel");
-						if (ans === "Regenerate") {
-							regenerateToString = true;
-						}
-					} else {
-						code += toString;
-					}
-					if (checkIfCodeExists(EQUALS_REGEXP)) {
-						const ans = await vscode.window.showInformationMessage("The equals() method is already implemented.", "Regenerate", "Cancel");
-						if (ans === "Regenerate") {
-							regenerateEquals = true;
-						}
-					} else {
-						code += equals;
-					}
-					if (checkIfCodeExists(HASHCODE_REGEXP)) {
-						const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
-						if (ans === "Regenerate") {
-							regenerateHashCode = true;
-						}
-					} else {
-						code += hashCode;
-					}
-
-					code += withFieldCode;
-
-					await editor.edit(editBuilder => {
-						// add imports if is not present
-						if (!checkIfCodeExists(TO_STRING_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
-							editBuilder.insert(new vscode.Position(1, 0), `\n${TO_STRING_IMPORT}`);
-						}
-						if (!checkIfCodeExists(EQUALS_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
-							editBuilder.insert(new vscode.Position(1, 0), `\n${EQUALS_IMPORT}`);
-						}
-						if (!checkIfCodeExists(HASHCODE_IMPORT_REGEXP) && !checkIfCodeExists(GLOBAL_IMPORT_REGEXP)) {
-							editBuilder.insert(new vscode.Position(1, 0), `\n${HASHCODE_IMPORT}`);
-						}
-						editBuilder.insert(selection.end, code);
-					});
-
-					// delete old code
-					if (regenerateToString) {
-						await replaceOldCode(TO_STRING_REGEXP, toString);
-						vscode.window.showInformationMessage("toString() method regenerated");
-					}
-					if (regenerateEquals) {
-						await replaceOldCode(EQUALS_REGEXP, equals);
-						vscode.window.showInformationMessage("equals() method regenerated");
-					}
-					if (regenerateHashCode) {
-						await replaceOldCode(HASHCODE_REGEXP, hashCode);
-						vscode.window.showInformationMessage("hashCode() method regenerated");
-					}
-				}
-			}
 		}
 	});
 
@@ -515,7 +415,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(recompileFileAnalyzer);
 	context.subscriptions.push(toString);
 	context.subscriptions.push(withField);
-	context.subscriptions.push(allMethods);
 	context.subscriptions.push(equals);
 	context.subscriptions.push(setCustomCompiledFolder);
 	context.subscriptions.push(deleteCustomCompiledFolder);
