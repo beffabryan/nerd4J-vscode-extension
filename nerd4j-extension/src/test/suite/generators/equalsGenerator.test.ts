@@ -8,7 +8,10 @@ describe('generateEquals', () => {
 
     // test equals with selected attributes
     it('should generate the correct code for equals method', async () => {
-        const selectedAttributes = ['String name', 'int age', 'boolean isActive'];
+        const selectedOptions = [{label: 'String name', picked: true, description: ""},
+        {label: 'int age', picked: true, description: ""},
+        {label: 'boolean isActive', picked: true, description: ""}];
+
         let expectedCode = `\n${tabs}/**\n${tabs} * ` 
             + `{@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) `
             + `{\n${tabs}\treturn Equals.ifSameClass(this, other,`
@@ -17,14 +20,14 @@ describe('generateEquals', () => {
             + `\n${tabs}\t\to -> o.isActive`
             + `\n${tabs}\t);\n${tabs}}\n`;
 
-        const generatedCode = await generateEquals(selectedAttributes);
+        const generatedCode = await generateEquals(selectedOptions);
         assert.strictEqual(`${generatedCode}`.trim(), expectedCode.trim());
     });
 
     // test equals with empty selected attributes
     it('should return an empty string when selected attributes are empty', async () => {
-        const selectedAttributes: string[] = [];
-        const generatedCode = await generateEquals(selectedAttributes);
+        const selectedOptions: any = [{}];
+        const generatedCode = await generateEquals(selectedOptions);
 
         let expectedCode = `\n${tabs}/**\n${tabs} * `
             + `{@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) `

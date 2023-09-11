@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { checkIfCodeExists, generateEquals, generateGetter, generateHashCode, generateSetter, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, FILE_ANALYZER_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, SETTER_WITHERS_COMMAND } from './config';
+import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, FILE_ANALYZER_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, PARENT_IMPLEMENTATION, CURRENT_IMPLEMENTATION } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
@@ -143,7 +143,6 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 		if (selectedOptions) {
-			const selectedAttributes = selectedOptions.map(option => option.label);
 
 			const selectionType = await vscode.window.showQuickPick(
 				printers,
@@ -151,7 +150,7 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 
 			if (selectionType) {
-				const toStringCode = await generateToStringCode(selectedAttributes, selectionType);
+				const toStringCode = await generateToStringCode(selectedOptions, selectionType);
 
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
@@ -188,22 +187,21 @@ export function activate(context: vscode.ExtensionContext) {
 	//generate with field command
 	const withField = vscode.commands.registerCommand('nerd4j-extension.generateWithField', async () => {
 
-		await getFields(true, true);
+		await getFields("with");
 		const selectedOptions = await vscode.window.showQuickPick(options, {
 			canPickMany: true,
 			placeHolder: 'Select attributes'
 		});
 
 		if (selectedOptions) {
-			const selectedAttributes = selectedOptions.map(option => option.label);
 
-			const withFieldCode = generateWithFields(selectedAttributes, className);
+			const withFieldCode = generateWithFields(selectedOptions, className);
 
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {
 				const selection = editor.selection;
 
-				editor.edit(editBuilder => {
+				await editor.edit(editBuilder => {
 					editBuilder.insert(selection.end, withFieldCode);
 				});
 			}
@@ -242,30 +240,28 @@ export function activate(context: vscode.ExtensionContext) {
 		if (createGetter) {
 
 			/* Generate getter methods */
-			await getFields();
+			await getFields("get");
 			const selectedOptions = await vscode.window.showQuickPick(options, {
 				canPickMany: true,
-				placeHolder: 'Select attributes for getter methods'
+				placeHolder: 'Select attributes for getter methods',
 			});
 
 
 			if (selectedOptions) {
-				const selectedAttributes = selectedOptions.map(option => option.label);
-				code += generateGetter(selectedAttributes);
+				code += generateGetter(selectedOptions);
 			}
 		}
 
 		if (createSetter) {
 			/* Generate setter methods */
-			await getFields(true, false);
+			await getFields("set");
 			const selectedOptions = await vscode.window.showQuickPick(options, {
 				canPickMany: true,
 				placeHolder: 'Select attributes for setter methods'
 			});
 
 			if (selectedOptions) {
-				const selectedAttributes = selectedOptions.map(option => option.label);
-				code += generateSetter(selectedAttributes);
+				code += generateSetter(selectedOptions);
 			}
 		}
 
@@ -273,7 +269,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (editor) {
 			const selection = editor.selection;
 
-			editor.edit(editBuilder => {
+			await editor.edit(editBuilder => {
 				editBuilder.insert(selection.end, code);
 			});
 		}
@@ -295,24 +291,22 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// select attributres for toString, equals and hashCode
 		if (selectedOptions && selectionType) {
-			let selectedAttributes = selectedOptions.map(option => option.label);
 
-			const toString = await generateToStringCode(selectedAttributes, selectionType);
-			const equals = await generateEquals(selectedAttributes);
-			const hashCode = await generateHashCode(selectedAttributes);
+			const toString = await generateToStringCode(selectedOptions, selectionType);
+			const equals = await generateEquals(selectedOptions);
+			const hashCode = await generateHashCode(selectedOptions);
 
 			let code = '';
 
 			// select attributres for withField
-			await getFields(true);
+			await getFields("with");
 			selectedOptions = await vscode.window.showQuickPick(options, {
 				canPickMany: true,
 				placeHolder: 'Select attributes for withField'
 			});
 
 			if (selectedOptions) {
-				selectedAttributes = selectedOptions.map(option => option.label);
-				const withFieldCode = generateWithFields(selectedAttributes, className);
+				const withFieldCode = generateWithFields(selectedOptions, className);
 
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
@@ -405,7 +399,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				// code variables
 				let code = '';
-				const equalsCode = await generateEquals(selectedAttributes);
+				const equalsCode = await generateEquals(selectedOptions);
 
 				const editor = vscode.window.activeTextEditor;
 
@@ -430,7 +424,7 @@ export function activate(context: vscode.ExtensionContext) {
 					let hashCode = '';
 					if (createHashCode) {
 
-						hashCode = await generateHashCode(selectedAttributes);
+						hashCode = await generateHashCode(selectedOptions);
 
 						if (checkIfCodeExists(HASHCODE_REGEXP)) {
 							const ans = await vscode.window.showInformationMessage("The hashCode() method is already implemented.", "Regenerate", "Cancel");
@@ -530,7 +524,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // get fields using java reflection
-function getFields(modifiableOnly: boolean = false, withersOnly: boolean = true): Promise<any> {
+function getFields(prefix: string = ""): Promise<any> {
 	return new Promise(async (resolve, reject) => {
 
 		// get root path
@@ -565,8 +559,7 @@ function getFields(modifiableOnly: boolean = false, withersOnly: boolean = true)
 					// get package name
 					const packageName = getPackageName(activeEditor.document.getText());
 					const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
-					const javaCommand = modifiableOnly ? `${path.join(jdk, 'bin', SETTER_WITHERS_COMMAND)} ${fullCompiledPath} ${classDefinition} ${withersOnly}`
-						: `${path.join(jdk, 'bin', FILE_ANALYZER_COMMAND)} ${fullCompiledPath} ${classDefinition} ${modifiableOnly}`;
+					const javaCommand = `${path.join(jdk, 'bin', FILE_ANALYZER_COMMAND)} ${fullCompiledPath} ${classDefinition} ${prefix}`
 
 					//check if the class file exists
 					const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
@@ -592,8 +585,19 @@ function getFields(modifiableOnly: boolean = false, withersOnly: boolean = true)
 							//remove all options
 							options = [];
 							className = outputList[0].trim();
+
 							for (let i = 1; i < outputList.length; i++) {
-								options.push({ label: outputList[i].trim(), picked: true });
+								const output = outputList[i].trim().split(' ');
+								const label = output[0] + ' ' + output[1];
+								let description = ' ';
+
+								if (output[2] == "1") {
+									description += CURRENT_IMPLEMENTATION;
+								} else if (output[2] == "2") {
+									description += PARENT_IMPLEMENTATION;
+								}
+
+								options.push({ label: label, picked: true, description: description });
 							}
 
 							resolve(options);

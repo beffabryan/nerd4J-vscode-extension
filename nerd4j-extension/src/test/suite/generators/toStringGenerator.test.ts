@@ -8,7 +8,10 @@ describe('generateToStringCode', () => {
 
     // toString
     it('should return the expected code', async () => {
-        const selectedAttributes = ['int age', 'String name'];
+        const selectedOptions = [
+            {label: 'int age', picked: true, description: ""},
+            {label: 'String name', picked: true, description: ""}];
+
         const selectedType = 'likeFunction';
 
         let expectedCode = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public String toString() {\n${tabs}\treturn ToString.of(this)`
@@ -16,7 +19,7 @@ describe('generateToStringCode', () => {
             + '\n\t\t.print("name", name)'
             + '\n\t\t.likeFunction();\n}\n';
 
-        const generatedCode = await generateToStringCode(selectedAttributes, selectedType);
+        const generatedCode = await generateToStringCode(selectedOptions, selectedType);
 
         assert.strictEqual(generatedCode, expectedCode);
     });

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { PARENT_IMPLEMENTATION } from './config';
 
 /**
  * Check if the import exists
@@ -108,13 +109,13 @@ export async function replaceOldCode(regex: RegExp, newCode: string) {
  * @param layoutType layout type of the toString method
  * @returns toString method code generated
  */
-export async function generateToStringCode(selectedAttributes: string[], layoutType: string): Promise<string> {
+export async function generateToStringCode(selectedAttributes: vscode.QuickPickItem[], layoutType: string): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public String toString() {\n${tabs}\treturn ToString.of(this)`;
 
 	for (const attribute of selectedAttributes) {
-		const attributeName = attribute.split(" ")[1]; // get variable name
+		const attributeName = attribute.label.split(" ")[1]; // get variable name
 		if (attributeName) {
 			code += `\n${tabs}\t\t.print("${attributeName}", ${attributeName})`;
 		}
@@ -130,7 +131,7 @@ export async function generateToStringCode(selectedAttributes: string[], layoutT
  * @param selectedAttributes selected attributes included in the equals method
  * @returns equals method code generated
  */
-export async function generateEquals(selectedAttributes: string[]): Promise<string> {
+export async function generateEquals(selectedAttributes: vscode.QuickPickItem[]): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public boolean equals(Object other) {\n${tabs}\treturn Equals.ifSameClass(this, other`;
@@ -140,7 +141,7 @@ export async function generateEquals(selectedAttributes: string[]): Promise<stri
 		code += ',';
 
 		for (let i = 0; i < selectedAttributes.length; i++) {
-			const attributeName = selectedAttributes[i].split(" ")[1];
+			const attributeName = selectedAttributes[i].label.split(" ")[1];
 
 			if (attributeName) {
 				code += `\n${tabs}\t\to -> o.${attributeName}`;
@@ -163,7 +164,7 @@ export async function generateEquals(selectedAttributes: string[]): Promise<stri
  * @param selectedAttributes selected attributes included in the hashCode method
  * @returns hashCode method code generated
  */
-export async function generateHashCode(selectedAttributes: string[]): Promise<string> {
+export async function generateHashCode(selectedAttributes: vscode.QuickPickItem[]): Promise<string> {
 
 	const tabs = insertTab(getIndentation());
 	let code = `\n${tabs}/**\n${tabs} * {@inheritDoc}\n${tabs} */\n${tabs}@Override\n${tabs}public int hashCode() {\n${tabs}\treturn Hashcode.of(`;
@@ -172,7 +173,7 @@ export async function generateHashCode(selectedAttributes: string[]): Promise<st
 		code += '0';
 	} else {
 		for (let i = 0; i < selectedAttributes.length; i++) {
-			const attributeName = selectedAttributes[i].split(" ")[1];
+			const attributeName = selectedAttributes[i].label.split(" ")[1];
 
 			if (attributeName) {
 				code += `${attributeName}`;
@@ -197,14 +198,14 @@ export async function generateHashCode(selectedAttributes: string[]): Promise<st
  * @param className name of the class
  * @returns withField methods code generated
  */
-export function generateWithFields(selectedAttributes: string[], className: string): string {
+export function generateWithFields(selectedAttributes: vscode.QuickPickItem[], className: string): string {
 
 	let code = '';
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
-		const attributeType = selectedAttributes[i].split(" ")[0];
-		const attributeName = selectedAttributes[i].split(" ")[1];
-		const overrideMethod = selectedAttributes[i].split(" ")[2];
+		const attributeType = selectedAttributes[i].label.split(" ")[0];
+		const attributeName = selectedAttributes[i].label.split(" ")[1];
+		const overrideMethod = selectedAttributes[i].description!.trim();
 
 		if (attributeName) {
 
@@ -225,7 +226,7 @@ export function generateWithFields(selectedAttributes: string[], className: stri
 			if (!checkIfCodeExists(withFieldRegExp)) {
 				
 				// check if the method is overrided
-				if (overrideMethod === 'true') {
+				if (overrideMethod === PARENT_IMPLEMENTATION) {
 					code += `\n${tabs}@Override`;
 				}
 				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}\treturn this;\n${tabs}}\n`;
@@ -244,14 +245,14 @@ export function generateWithFields(selectedAttributes: string[], className: stri
  * @param selectedAttributes selected attributes included in the setter methods
  * @returns setter methods code generated
  */
-export function generateSetter(selectedAttributes: string[]): string {
+export function generateSetter(selectedAttributes: vscode.QuickPickItem[]): string {
 
 	let code = '';
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
-		const attributeType = selectedAttributes[i].split(" ")[0];
-		const attributeName = selectedAttributes[i].split(" ")[1];
-		const overrideMethod = selectedAttributes[i].split(" ")[2];
+		const attributeType = selectedAttributes[i].label.split(" ")[0];
+		const attributeName = selectedAttributes[i].label.split(" ")[1];
+		const overrideMethod = selectedAttributes[i].description!.trim();
 
 		if (attributeName) {
 
@@ -269,9 +270,9 @@ export function generateSetter(selectedAttributes: string[]): string {
 
 			//check if method already exists
 			if (!checkIfCodeExists(setterRegExp)) {
-
+				
 				// check if the method is overrided
-				if (overrideMethod === 'true') {
+				if (overrideMethod === PARENT_IMPLEMENTATION) {
 					code += `\n${tabs}@Override`;
 				}
 				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}\n`;
@@ -290,13 +291,14 @@ export function generateSetter(selectedAttributes: string[]): string {
  * @param selectedAttributes selected attributes included in the getter methods
  * @returns getter methods code generated
  */
-export function generateGetter(selectedAttributes: string[]): string {
+export function generateGetter(selectedAttributes: vscode.QuickPickItem[]): string {
 
 	let code = '';
 
 	for (let i = 0; i < selectedAttributes.length; i++) {
-		const attributeType = selectedAttributes[i].split(" ")[0];
-		const attributeName = selectedAttributes[i].split(" ")[1];
+		const attributeType = selectedAttributes[i].label.split(" ")[0];
+		const attributeName = selectedAttributes[i].label.split(" ")[1];
+		const overrideMethod = selectedAttributes[i].description!.trim();
 
 		if (attributeName) {
 
@@ -313,6 +315,11 @@ export function generateGetter(selectedAttributes: string[]): string {
 
 			//check if method already exists
 			if (!checkIfCodeExists(getterRegExp)) {
+				
+				// check if the method is overrided
+				if (overrideMethod === PARENT_IMPLEMENTATION) {
+					code += `\n${tabs}@Override`;
+				}
 				code += `\n${tabs}${methodSignature} {\n${tabs}\treturn ${attributeName};\n${tabs}}\n`;
 			} else {
 				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
