@@ -591,13 +591,17 @@ function getFields(prefix: string = ""): Promise<any> {
 								const label = output[0] + ' ' + output[1];
 								let description = ' ';
 
+								let picked = false;
+
 								if (output[2] == "1") {
 									description += CURRENT_IMPLEMENTATION;
 								} else if (output[2] == "2") {
 									description += PARENT_IMPLEMENTATION;
+								} else {
+									picked = true;
 								}
 
-								options.push({ label: label, picked: true, description: description });
+								options.push({ label: label, picked: picked, description: description });
 							}
 
 							resolve(options);
