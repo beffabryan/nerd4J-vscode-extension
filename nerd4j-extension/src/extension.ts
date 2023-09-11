@@ -195,7 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (selectedOptions) {
 
-			const withFieldCode = generateWithFields(selectedOptions, className);
+			const withFieldCode = await generateWithFields(selectedOptions, className);
 
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {

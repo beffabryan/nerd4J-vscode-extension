@@ -16,7 +16,7 @@ describe('generateWithFields', () => {
             + '\npublic Person withAge(int value) {\n\tthis.age = value;\n\treturn this;\n}\n';
 
         const generatedCode = generateWithFields(selectedOptions, className);
-        assert.strictEqual(generatedCode.trim(), expectedCode.trim());
+        assert.strictEqual(generatedCode, expectedCode);
     });
 
     // test with empty selected attributes

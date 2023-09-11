@@ -198,7 +198,7 @@ export async function generateHashCode(selectedAttributes: vscode.QuickPickItem[
  * @param className name of the class
  * @returns withField methods code generated
  */
-export function generateWithFields(selectedAttributes: vscode.QuickPickItem[], className: string): string {
+export async function generateWithFields(selectedAttributes: vscode.QuickPickItem[], className: string): Promise<string> {
 
 	let code = '';
 
@@ -218,21 +218,29 @@ export function generateWithFields(selectedAttributes: vscode.QuickPickItem[], c
 			//escape special characters
 			const escapedClassName = className.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 			const escapedMethodName = methodName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-			const withFieldRegExpPattern = `public\\s+${escapedClassName}\\s+${escapedMethodName}\\s*\\(\\s*[^\\s]+\\s+[^\\s]+\\s*\\)\\s*\\{`;
+			const withFieldRegExpPattern = `(@Override)*\\s*public\\s+${escapedClassName}\\s+${escapedMethodName}\\s*\\(\\s*[^\\s]+\\s+[^\\s]+\\s*\\)\\s*\\{[^}]*\\}`;
 
 			const withFieldRegExp = new RegExp(withFieldRegExpPattern);
 
+			// check if the method is overrided
+			let override = '';
+			if (overrideMethod === PARENT_IMPLEMENTATION) {
+				override += `\n${tabs}@Override`;
+			}
+
 			//check if method already exists
 			if (!checkIfCodeExists(withFieldRegExp)) {
-
-				// check if the method is overrided
-				if (overrideMethod === PARENT_IMPLEMENTATION) {
-					code += `\n${tabs}@Override`;
-				}
-				code += `\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}\treturn this;\n${tabs}}\n`;
-
+				code += `${override}\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}\treturn this;\n${tabs}}\n`;
 			} else {
-				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
+				// regenerates the method
+				const ans = await vscode.window.showInformationMessage(`The ${methodName}(${attributeType} ${attributeName}) method is already implemented.`, "Regenerate", "Cancel");
+				if (ans === "Regenerate") {
+
+					const newCode = `${override}\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}\treturn this;\n${tabs}}\n`;
+					await replaceOldCode(withFieldRegExp, newCode);
+					vscode.window.showInformationMessage(`${methodName}(${attributeType} ${attributeName}) method regenerated`);
+
+				}
 			}
 		}
 	}
