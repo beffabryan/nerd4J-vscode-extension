@@ -283,7 +283,7 @@ export async function generateSetter(selectedAttributes: vscode.QuickPickItem[])
 				const ans = await vscode.window.showInformationMessage(`The ${methodName}(${attributeType} ${attributeName}) method is already implemented.`, "Regenerate", "Cancel");
 				if (ans === "Regenerate") {
 
-					const newCode = `${override}\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}`;
+					const newCode = `${override}\n${tabs}${methodSignature} {\n${tabs}\tthis.${attributeName} = ${attributeName};\n${tabs}}\n`;
 					await replaceOldCode(setterRegExp, newCode);
 					vscode.window.showInformationMessage(`${methodName}(${attributeType} ${attributeName}) method regenerated`);
 
@@ -300,7 +300,7 @@ export async function generateSetter(selectedAttributes: vscode.QuickPickItem[])
  * @param selectedAttributes selected attributes included in the getter methods
  * @returns getter methods code generated
  */
-export function generateGetter(selectedAttributes: vscode.QuickPickItem[]): string {
+export async function generateGetter(selectedAttributes: vscode.QuickPickItem[]): Promise<string> {
 
 	let code = '';
 
@@ -319,19 +319,27 @@ export function generateGetter(selectedAttributes: vscode.QuickPickItem[]): stri
 
 			//escape special characters
 			const escapedMethodName = methodName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-			const getterRegExpPattern = `public\\s+${attributeType}\\s+${escapedMethodName}\\s*\\(\\s*\\)\\s*\\{`;
+			const getterRegExpPattern = `(@Override)*\\s*public\\s+${attributeType}\\s+${escapedMethodName}\\s*\\(\\s*\\)\\s*\\{[^}]*\\}`;
 			const getterRegExp = new RegExp(getterRegExpPattern);
+
+			// check if the method is overrided
+			let override = '';
+			if (overrideMethod === PARENT_IMPLEMENTATION) {
+				override += `\n${tabs}@Override`;
+			}
 
 			//check if method already exists
 			if (!checkIfCodeExists(getterRegExp)) {
-
-				// check if the method is overrided
-				if (overrideMethod === PARENT_IMPLEMENTATION) {
-					code += `\n${tabs}@Override`;
-				}
-				code += `\n${tabs}${methodSignature} {\n${tabs}\treturn ${attributeName};\n${tabs}}\n`;
+				code += `${override}\n${tabs}${methodSignature} {\n${tabs}\treturn ${attributeName};\n${tabs}}\n`;
 			} else {
-				vscode.window.showInformationMessage(`Method ${methodName}() already exists`);
+				// regenerates the method
+				const ans = await vscode.window.showInformationMessage(`The ${methodName}(${attributeType} ${attributeName}) method is already implemented.`, "Regenerate", "Cancel");
+				if (ans === "Regenerate") {
+
+					const newCode = `${override}\n${tabs}${methodSignature} {\n${tabs}\treturn ${attributeName};\n${tabs}}\n`;
+					await replaceOldCode(getterRegExp, newCode);
+					vscode.window.showInformationMessage(`${methodName}(${attributeType} ${attributeName}) method regenerated`);
+				}
 			}
 		}
 	}

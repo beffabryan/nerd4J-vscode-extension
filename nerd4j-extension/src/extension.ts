@@ -248,7 +248,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 			if (selectedOptions) {
-				code += generateGetter(selectedOptions);
+				code += await generateGetter(selectedOptions);
 			}
 		}
 
@@ -397,8 +397,7 @@ export function activate(context: vscode.ExtensionContext) {
 				{ label: 'toString()', command: 'nerd4j-extension.generateToString' },
 				{ label: 'equals() and hashCode', command: 'nerd4j-extension.generateEquals' },
 				{ label: 'withField()', command: 'nerd4j-extension.generateWithField' },
-				{ label: 'getter and setter methods', command: 'nerd4j-extension.generateGetterAndSetter' }/*,
-				{ label: 'all methods', command: 'nerd4j-extension.generateAllMethods' }*/
+				{ label: 'getter and setter methods', command: 'nerd4j-extension.generateGetterAndSetter' }
 			],
 			{ placeHolder: 'Generate' }
 		);
