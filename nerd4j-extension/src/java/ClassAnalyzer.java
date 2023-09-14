@@ -390,7 +390,7 @@ public class ClassAnalyzer {
                     .forEach(System.out::println);
 
         } catch (UnsupportedClassVersionError ex) {
-            System.err.println("Unsupported class version");
+            System.err.println(ex);
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }

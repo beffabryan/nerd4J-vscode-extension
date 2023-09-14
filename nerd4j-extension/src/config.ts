@@ -4,7 +4,7 @@ const JAVA_ANALYZER_FOLDER: string = join(__dirname, '..', 'src', 'java');
 const JAVA_FILE_ANALYZER_NAME: string = 'ClassAnalyzer';
 const JAVAC_PATH = join(JAVA_ANALYZER_FOLDER, `${JAVA_FILE_ANALYZER_NAME}.java`)
 
-export const FILE_ANALYZER_COMMAND: string = `java -cp ${JAVA_ANALYZER_FOLDER} ${JAVA_FILE_ANALYZER_NAME}`;
+export const FILE_ANALYZER_COMMAND: string = `-cp ${JAVA_ANALYZER_FOLDER} ${JAVA_FILE_ANALYZER_NAME}`;
 export const JAVAC_COMMAND: string = `javac ${JAVAC_PATH}`;
 
 export const TO_STRING_IMPORT: string = 'import org.nerd4j.utils.lang.ToString;';

@@ -92,9 +92,10 @@ export function activate(context: vscode.ExtensionContext) {
 	const checkCurrentJDK = vscode.commands.registerCommand('nerd4j-extension.checkCurrentJDK', async () => {
 
 		const jdk = await getCurrentJDK();
+		vscode.window.showInformationMessage('Current jdk: ' + jdk);
 
 		if (jdk) {
-			vscode.window.showInformationMessage('Current jdk version: ' + jdk);
+			vscode.window.showInformationMessage('Current jdk: ' + jdk);
 		} else {
 
 			const quickFix = { title: 'Set workspace jdk main folder', command: 'nerd4j-extension.setWorkspaceJDK' };
@@ -457,16 +458,29 @@ function getFields(prefix: string = ""): Promise<any> {
 					// get package name
 					const packageName = getPackageName(activeEditor.document.getText());
 					const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
-					const javaCommand = `${path.join(jdk, 'bin', FILE_ANALYZER_COMMAND)} ${fullCompiledPath} ${classDefinition} ${prefix}`
+					const javaCommand = (jdk !== "java") ? path.join(jdk, 'bin', `java ${FILE_ANALYZER_COMMAND}`) : `java ${FILE_ANALYZER_COMMAND}`;
+					const classAnalyzerCommand = `${javaCommand} ${fullCompiledPath} ${classDefinition} ${prefix}`
 
 					//check if the class file exists
 					const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
 
 					if (fs.existsSync(classFilePath)) {
 
-						exec(javaCommand, (error, stdout, stderr) => {
-							if (error || stderr) {
-								vscode.window.showErrorMessage("jdk main folder not found. Check if the jdk is correctly set",
+
+						exec(classAnalyzerCommand, (error, stdout, stderr) => {
+
+
+							if (error) {
+								vscode.window.showErrorMessage(`The jdk is not correctly set. Set the jdk`, jdkQuickFix).then(selection => {
+									if (selection) {
+										vscode.commands.executeCommand(selection.command);
+									}
+								});
+								return;
+							}
+
+							if (stderr) {
+								vscode.window.showErrorMessage('The class has been compiled with a more recent jdk version than the current one. Please compile the class with the same version or set a more recent version jdk for the workspace',
 									jdkQuickFix).then(selection => {
 										if (selection) {
 											vscode.commands.executeCommand(selection.command);
