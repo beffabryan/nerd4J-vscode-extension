@@ -5,7 +5,7 @@ import * as path from 'path';
 import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, FILE_ANALYZER_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, PARENT_IMPLEMENTATION, CURRENT_IMPLEMENTATION } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
-import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK } from './jdkManagement';
+import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK, setProjectManagerJDK } from './jdkManagement';
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -67,6 +67,11 @@ async function getJDK() {
  * @inerhitDoc 
  */
 export function activate(context: vscode.ExtensionContext) {
+
+	/* set workspace jdk command */
+	const mavenJDK = vscode.commands.registerCommand('nerd4j-extension.setProjectManagerJDK', async () => {
+		await setProjectManagerJDK();
+	});
 
 	/* set workspace jdk command */
 	const setJDKWorkspace = vscode.commands.registerCommand('nerd4j-extension.setWorkspaceJDK', async () => {
