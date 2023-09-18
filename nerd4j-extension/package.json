@@ -70,10 +70,6 @@
       {
         "command": "nerd4j-extension.checkCurrentJDK",
         "title": "Nerd4J: check jdk version"
-      },
-      {
-        "command": "nerd4j-extension.setProjectManagerJDK",
-        "title": "Nerd4J: set project manager jdk"
       }
     ],
     "menus": {

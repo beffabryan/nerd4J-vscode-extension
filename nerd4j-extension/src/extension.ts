@@ -5,7 +5,7 @@ import * as path from 'path';
 import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, FILE_ANALYZER_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, PARENT_IMPLEMENTATION, CURRENT_IMPLEMENTATION } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
-import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK, setProjectManagerJDK } from './jdkManagement';
+import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK, setProjectManagerJDK, projectManagerJdkQuickFix } from './jdkManagement';
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -486,7 +486,7 @@ function getFields(prefix: string = ""): Promise<any> {
 
 							if (stderr) {
 								vscode.window.showErrorMessage('The class has been compiled with a more recent jdk version than the current one. Please compile the class with the same version or set a more recent version jdk for the workspace',
-									jdkQuickFix).then(selection => {
+									projectManagerJdkQuickFix).then(selection => {
 										if (selection) {
 											vscode.commands.executeCommand(selection.command);
 										}

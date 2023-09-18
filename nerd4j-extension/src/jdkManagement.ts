@@ -10,6 +10,7 @@ const JAVA_HOME = 'java.jdt.ls.java.home';
 
 /* quick fix if the jdk is not correctly set */
 export const jdkQuickFix = { title: 'Set workspace JDK', command: 'nerd4j-extension.setWorkspaceJDK' };
+export const projectManagerJdkQuickFix = { title: 'Open and set project manager config file', command: 'nerd4j-extension.setProjectManagerJDK' };
 
 /**
  * Check if exists a JDK in the workspace settings.json file
@@ -59,14 +60,14 @@ async function checkIfJavaCommandExists(): Promise<string | null> {
 
 /**
  * Check if the project is a Apache Maven project
- * Check pom.xml file and set the cursor position 
- * 
+ * Check pom.xml file and set the cursor position to the java configuration
+ *  
+ * @param pomXmlPath path of the pom.xml file
  */
-export async function setPomJDK(pomXmlPath: vscode.Uri) {
+async function setPomJDK(pomXmlPath: vscode.Uri) {
 
     //open pom.xml file
-    const pomXmlDocument = await vscode.workspace.openTextDocument(pomXmlPath);
-    await vscode.window.showTextDocument(pomXmlDocument);
+    await openFile(pomXmlPath);
 
     // get the text editor
     const editor = vscode.window.activeTextEditor;
@@ -78,18 +79,18 @@ export async function setPomJDK(pomXmlPath: vscode.Uri) {
 
         //get text editor
         const pomText = fs.readFileSync(pomXmlPath.fsPath).toString();
-        const sourceCompiler = pomText.match(new RegExp(`<${javaCompilerSource}>(.*)<\\/${javaCompilerSource}>`));
-        const targetCompiler = pomText.match(new RegExp(`<${javaCompilerTarget}>(.*)<\\/${javaCompilerTarget}>`));
+        const sourceCompiler = pomText.match(new RegExp(`<${javaCompilerSource}\\s*>`));
+        const targetCompiler = pomText.match(new RegExp(`<${javaCompilerTarget}\\s*>`));
 
         //check if the java version is set in the pom.xml file
         if (sourceCompiler && targetCompiler) {
 
             //set the first cursor position to the javaVersion position
-            const position = editor.document.positionAt(sourceCompiler.index! + `<${javaCompilerTarget}>`.length);
+            const position = editor.document.positionAt(sourceCompiler.index! + sourceCompiler.toString().length);
             const selection1 = new vscode.Selection(position, position);
 
             //set the second cursor position to the end of the javaVersion position
-            const position2 = editor.document.positionAt(targetCompiler.index! + `<${javaCompilerTarget}>`.length)
+            const position2 = editor.document.positionAt(targetCompiler.index! + targetCompiler.toString().length)
             const selection2 = new vscode.Selection(position2, position2);
             editor.selections = [selection1, selection2];
         }
@@ -97,65 +98,46 @@ export async function setPomJDK(pomXmlPath: vscode.Uri) {
 }
 
 /**
- * Check if the project is a Apache Ant project
- * Check build.xml file and set the cursor position 
- * 
- */
-function setBuildJDK(): string {
-    vscode.window.showInformationMessage('Ant project detected');
-    return "";
-}
-
-/**
  * Check if the project is a buildfile.buildr Buildr project
  * Check buildfile.xml or build.yaml file and set the cursor position 
  * 
  */
-function setBuildrJDK(): string {
-    vscode.window.showInformationMessage('Buildr project detected');
-    return "";
+async function setBuildfileJDK(buildfilePath: vscode.Uri) {
+
+    //open buildfile file
+    await openFile(buildfilePath);
+
+    // get the text editor
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+
+        //maven compiler source
+        const javaCompilerSource = "compile.options.source";
+        const javaCompilerTarget = "compile.options.target";
+
+        //get text editor
+        const pomText = fs.readFileSync(buildfilePath.fsPath).toString();
+        const sourceCompiler = pomText.match(new RegExp(`${javaCompilerSource}\\s*=\\s*\\'`));
+        const targetCompiler = pomText.match(new RegExp(`${javaCompilerTarget}\\s*=\\s*\\'`));
+
+        //check if the java version is set in the pom.xml file
+        if (sourceCompiler && targetCompiler) {
+
+            //set the first cursor position to the javaVersion position
+            const position = editor.document.positionAt(sourceCompiler.index! + sourceCompiler.toString().length);
+            const selection1 = new vscode.Selection(position, position);
+
+            //set the second cursor position to the end of the javaVersion position
+            const position2 = editor.document.positionAt(targetCompiler.index! + targetCompiler.toString().length)
+            const selection2 = new vscode.Selection(position2, position2);
+            editor.selections = [selection1, selection2];
+        }
+    }
 }
 
 /**
- * Check if the project is build gradle project
- * Check build.gradle file and set the cursor position 
- * 
+ * Open project manager file to set the java configuration
  */
-function setGrailsJDK(): string {
-    vscode.window.showInformationMessage('Grails project detected');
-    return "";
-}
-
-/**
- * Check if the project is a Grape project
- * Check build.gradle file and set the cursor position 
- * 
- */
-function setGrapeJDK(): string {
-    vscode.window.showInformationMessage('Grape project detected');
-    return "";
-}
-
-/**
- * Check if the project is a Leiningen project
- * Check project.clj file and set the cursor position 
- * 
- */
-function setLeiningenJDK(): string {
-    vscode.window.showInformationMessage('Leiningen project detected');
-    return "";
-}
-
-/**
- * Check if the project is a SBT project
- * Check build.sbt or project/build.properties file and set the cursor position 
- * 
- */
-function setSBTJDK(): string {
-    vscode.window.showInformationMessage('SBT project detected');
-    return "";
-}
-
 export async function setProjectManagerJDK() {
 
     //check if the pom.xml file exists
@@ -166,13 +148,57 @@ export async function setProjectManagerJDK() {
     }
     const projectFolder = workspaceFolders[0].uri.fsPath;
 
-    // Check if pom.xml file exists in the project root folder
+    // Check if pom.xml file exists in the project root folder (Apache Maven project)
     const pomXmlPath = vscode.Uri.file(path.join(projectFolder, "pom.xml"));
     if (fs.existsSync(pomXmlPath.fsPath)) {
 
-        //set the pom.xml file
+        //open the pom.xml file and set the cursor on java configuration
         setPomJDK(pomXmlPath);
+        return;
     }
 
-    return "";
+    //check if there is a build.xml file in the project root folder (Apache Ant project)
+    const buildXmlPath = vscode.Uri.file(path.join(projectFolder, "build.xml"));
+    if (fs.existsSync(buildXmlPath.fsPath)) {
+
+        // open build.xml file
+        openFile(buildXmlPath);
+        return;
+    }
+
+    //check if there is a buildfile file in the project root folder (Apache Buildr project)
+    const buildFileXmlPath = vscode.Uri.file(path.join(projectFolder, "buildfile"));
+    if (fs.existsSync(buildFileXmlPath.fsPath)) {
+
+        //open the buildfile file and set the cursor on java configuration
+        setBuildfileJDK(buildFileXmlPath);
+        return;
+
+    }
+
+    //check if there is a build.gradle file in the project root folder (Groovy Grape or Grails project)
+    const buildGradlePath = vscode.Uri.file(path.join(projectFolder, "build.gradle"));
+    if (fs.existsSync(buildGradlePath.fsPath)) {
+
+        //open build.gradle file
+        openFile(buildGradlePath);
+    }
+
+    //check if there is a project.clj file in the project root folder (Leiningen project)
+    const projectCljPath = vscode.Uri.file(path.join(projectFolder, "project.clj"));
+    if (fs.existsSync(projectCljPath.fsPath)) {
+
+        //open project.clj file
+        openFile(projectCljPath);
+        return;
+    }
+}
+
+/**
+ * Open a file in the editor
+ * @param file file to open
+ */
+async function openFile(file: vscode.Uri) {
+    const document = await vscode.workspace.openTextDocument(file);
+    await vscode.window.showTextDocument(document);
 }
