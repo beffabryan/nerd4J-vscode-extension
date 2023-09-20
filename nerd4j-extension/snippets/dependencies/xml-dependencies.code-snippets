@@ -19,7 +19,7 @@
             "nerd4j"
         ],
         "body": [
-            "'org.nerd4j:nerd4j-utils:jar:2.0.0'"
+            "compile.with 'org.nerd4j:nerd4j-utils:jar:2.0.0'"
         ],
         "description": "Nerd4J-utils dependency for Apache Buildr",
         "scope": "text.xml"

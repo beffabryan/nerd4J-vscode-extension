@@ -1,11 +1,5 @@
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -76,17 +70,16 @@ public class ClassAnalyzer {
     /**
      * Constructor that initializes the class.
      * 
-     * @param compiledFilesFolder the path of the compiled files
-     * @param className           the name of the class to analyze
+     * @param className the name of the class to analyze
      * @throws Exception if the given folder or class do not exist
      */
-    public ClassAnalyzer(String compiledFilesFolder, String className, String prefix)
+    public ClassAnalyzer(String className, String prefix)
             throws Exception {
 
         super();
 
         /* set classes and prefix */
-        this.loadedClass = init(compiledFilesFolder, className);
+        this.loadedClass = init(className);
         boolean validPrefix = Arrays.stream(PREFIXES).anyMatch(p -> p.equals(prefix));
         this.prefix = (validPrefix) ? prefix : "";
 
@@ -95,23 +88,15 @@ public class ClassAnalyzer {
     /**
      * Initializes the class.
      * 
-     * @param compiledFilesFolder the path of the compiled files
      * @param className           the name of the class to analyze
      * @throws Exception if the given folder or class do not exist
      */
-    private Class<?> init(String compiledFilesFolder, String className)
+    private Class<?> init(String className)
             throws Exception {
 
-        /* Check if the directory exists. */
-        final Path compiledFiles = Paths.get(compiledFilesFolder);
-        if (!Files.exists(compiledFiles))
-            throw new NoSuchFileException("The given folder '" + compiledFilesFolder + "' does not exist");
-
-        /* Load the class. */
-        final URL[] compiledFilesURL = { compiledFiles.toUri().toURL() };
-        final URLClassLoader classLoader = URLClassLoader.newInstance(compiledFilesURL);
-
-        return classLoader.loadClass(className);
+        // Get the Class object for the specified class name
+        Class<?> clazz = Class.forName(className);
+        return clazz;
 
     }
 
@@ -280,21 +265,21 @@ public class ClassAnalyzer {
         checkIfMethodExists(accessibleFields);
 
         // check if getter/setter/wither methods exist in the parent class */
-        checkIfMethodsAreOverridden(accessibleFields);
+        checkIfMethodsExistsInSuperclasses(accessibleFields);
 
         return accessibleFields;
 
     }
 
     /**
-     * Checks if the wither/setter methods are overridden by the current class.
+     * Checks if the wither/setter methods are present in the parent class.
      * 
      * @param withersOnly tells if we are interested only in wither methods or
      *                    setter methods. True means wither methods.
      * @returs a list of modifiable fields with the flag set to true if the method
      *         is overridden
      */
-    public void checkIfMethodsAreOverridden(List<CustomField> fields) {
+    public void checkIfMethodsExistsInSuperclasses(List<CustomField> fields) {
 
         /* Get all the accessible methods of the ancestor classes. */
         Class<?> parent = loadedClass.getSuperclass();
@@ -319,6 +304,11 @@ public class ClassAnalyzer {
         }
     }
 
+    /**
+     * Checks if the wither/setter methods already exist in the current class.
+     * 
+     * @param fields
+     */
     public void checkIfMethodExists(List<CustomField> fields) {
 
         for (CustomField field : fields) {
@@ -351,12 +341,10 @@ public class ClassAnalyzer {
     /**
      * Entry point for the class execution.
      * <p>
-     * This method expects three arguments:
+     * This method expects two arguments:
      * <ol>
-     * <li>base path where to find the compiled classes.</li>
      * <li>fully qualified name of the class to analyze.</li>
-     * <li>{@code boolean} value telling if the fields to return must be
-     * modifiable.</li>
+     * <li>prefix of the method ("set", "get", "with", "")</li>
      * </ol>
      * The method prints a list of fields one per line.
      * 
@@ -364,22 +352,22 @@ public class ClassAnalyzer {
      */
     public static void main(String[] args) {
 
-        if (args.length < 2) {
-            System.err.print("Usage: java ClassAnalyzer <compiledFilesBasePath> <className> <prefix>");
+        if (args.length < 1) {
+            System.err.print("Usage: java ClassAnalyzer <className> <prefix>");
             return;
         }
 
         try {
 
             /* Get the arguments. */
-            final String compiledFilesBasePath = args[0];
-            final String className = args[1];
-            final String prefix = (args.length == 2) ? "" : args[2];
+            final String className = args[0];
+            final String prefix = (args.length == 1) ? "" : args[1];
 
+            /* Check if the fields are required to be modifiable. */
             final boolean modifiableOnly = (prefix.equalsIgnoreCase("set") || prefix.equalsIgnoreCase("with"));
 
             /* Create the file analyzer. */
-            final ClassAnalyzer classAnalyzer = new ClassAnalyzer(compiledFilesBasePath, className, prefix);
+            final ClassAnalyzer classAnalyzer = new ClassAnalyzer(className, prefix);
 
             /* Get all accessible fields. */
             final List<CustomField> accessibleFields = classAnalyzer.getAccessibleFields(modifiableOnly);

@@ -2,10 +2,11 @@ import * as vscode from 'vscode';
 import { checkIfCodeExists, generateEquals, generateGetter, generateHashCode, generateSetter, generateToStringCode, generateWithFields, getPackageName, replaceOldCode } from './codeGenerator';
 import { exec } from 'child_process';
 import * as path from 'path';
-import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, FILE_ANALYZER_COMMAND, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, PARENT_IMPLEMENTATION, CURRENT_IMPLEMENTATION } from './config';
+import { EQUALS_IMPORT, EQUALS_IMPORT_REGEXP, EQUALS_REGEXP, GLOBAL_IMPORT_REGEXP, HASHCODE_IMPORT, HASHCODE_IMPORT_REGEXP, HASHCODE_REGEXP, JAVAC_COMMAND, TO_STRING_IMPORT, TO_STRING_IMPORT_REGEXP, TO_STRING_REGEXP, PARENT_IMPLEMENTATION, CURRENT_IMPLEMENTATION, JAVA_ANALYZER_FOLDER, JAVA_FILE_ANALYZER_NAME } from './config';
 import { existingPath, setCustomizedPath, deleteCustomizedPath } from './path';
 import * as fs from 'fs';
 import { getCurrentJDK, jdkQuickFix, setWorkspaceJDK, setProjectManagerJDK, projectManagerJdkQuickFix } from './jdkManagement';
+import { getClassPath } from './classPath';
 
 let options: vscode.QuickPickItem[] = [];
 let className: string = '';
@@ -51,7 +52,7 @@ function showDialog(canSelectMany: boolean, openLabel: string, title: string, ca
 async function getJDK() {
 	const currentJDK = await getCurrentJDK();
 	if (!currentJDK) {
-		vscode.window.showWarningMessage(`This project does not have a JDK version set. Please set a JDK version in the settings.`,
+		vscode.window.showWarningMessage(`This project does not have a JDK version set and no java command found on the operating system. Please set a JDK version in the settings.`,
 			jdkQuickFix).then(selection => {
 				if (selection) {
 					vscode.commands.executeCommand(selection.command);
@@ -96,20 +97,10 @@ export function activate(context: vscode.ExtensionContext) {
 	//set workspace jdk command
 	const checkCurrentJDK = vscode.commands.registerCommand('nerd4j-extension.checkCurrentJDK', async () => {
 
-		const jdk = await getCurrentJDK();
-		vscode.window.showInformationMessage('Current jdk: ' + jdk);
+		const jdk = await getJDK();
 
 		if (jdk) {
-			vscode.window.showInformationMessage('Current jdk: ' + jdk);
-		} else {
-
-			const quickFix = { title: 'Set workspace jdk main folder', command: 'nerd4j-extension.setWorkspaceJDK' };
-			vscode.window.showWarningMessage('There is no jdk version set for this workspace',
-				quickFix).then(selection => {
-					if (selection) {
-						vscode.commands.executeCommand(selection.command);
-					}
-				});
+			vscode.window.showInformationMessage('Java command in use: ' + jdk);
 		}
 	});
 
@@ -416,6 +407,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	//subscritpions
 	context.subscriptions.push(setJDKWorkspace);
+	context.subscriptions.push(mavenJDK);
 	context.subscriptions.push(checkCurrentJDK);
 	context.subscriptions.push(recompileFileAnalyzer);
 	context.subscriptions.push(toString);
@@ -463,8 +455,17 @@ function getFields(prefix: string = ""): Promise<any> {
 					// get package name
 					const packageName = getPackageName(activeEditor.document.getText());
 					const classDefinition = (packageName) ? `${packageName}.${fileName.split('.')[0]}` : fileName.split('.')[0];
-					const javaCommand = (jdk !== "java") ? path.join(jdk, 'bin', `java ${FILE_ANALYZER_COMMAND}`) : `java ${FILE_ANALYZER_COMMAND}`;
-					const classAnalyzerCommand = `${javaCommand} ${fullCompiledPath} ${classDefinition} ${prefix}`
+					const javaCommand = (jdk !== "java") ? path.join(jdk, 'bin', `java`) : `java`;
+					
+					//check classpath
+					const classPath = await getClassPath();
+					if(!classPath){
+						vscode.window.showErrorMessage(`Dependencies folder not found. Plese specify the correct dependencies folder path.`);
+						return;
+					}
+
+					const classPathParam = `-cp "${JAVA_ANALYZER_FOLDER};${fullCompiledPath};${classPath}"`;
+					const classAnalyzerCommand = `${javaCommand} ${classPathParam} ${JAVA_FILE_ANALYZER_NAME} ${classDefinition} ${prefix}`;
 
 					//check if the class file exists
 					const classFilePath = path.join(fullCompiledPath, packageName.replace(/\./g, '/'), fileName);
@@ -475,7 +476,7 @@ function getFields(prefix: string = ""): Promise<any> {
 						exec(classAnalyzerCommand, (error, stdout, stderr) => {
 
 
-							if (error) {
+							if (error){
 								vscode.window.showErrorMessage(`The jdk is not correctly set. Set the jdk`, jdkQuickFix).then(selection => {
 									if (selection) {
 										vscode.commands.executeCommand(selection.command);
@@ -494,10 +495,8 @@ function getFields(prefix: string = ""): Promise<any> {
 								return;
 							}
 
-							const output = stdout.trim();
-
 							// save output in a list
-							const outputList = output.split("\n");
+							const outputList = stdout.trim().split("\n");
 
 							//remove all options
 							options = [];
@@ -541,4 +540,4 @@ function getFields(prefix: string = ""): Promise<any> {
 			vscode.window.showErrorMessage('Could not find the root folder of the project');
 		}
 	});
-}
+} 
