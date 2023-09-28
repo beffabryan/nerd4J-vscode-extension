@@ -464,7 +464,10 @@ function getFields(prefix: string = ""): Promise<any> {
 						return;
 					}
 
-					const classPathParam = `-cp "${JAVA_ANALYZER_FOLDER};${fullCompiledPath};${classPath}"`;
+					//separator for windows and linux
+					const separator = (process.platform === 'win32') ? ';' : ':';
+
+					const classPathParam = `-cp "${JAVA_ANALYZER_FOLDER}${separator}${fullCompiledPath}${separator}${classPath}"`;
 					const classAnalyzerCommand = `${javaCommand} ${classPathParam} ${JAVA_FILE_ANALYZER_NAME} ${classDefinition} ${prefix}`;
 
 					//check if the class file exists
@@ -477,6 +480,7 @@ function getFields(prefix: string = ""): Promise<any> {
 
 
 							if (error){
+
 								vscode.window.showErrorMessage(`The jdk is not correctly set. Set the jdk`, jdkQuickFix).then(selection => {
 									if (selection) {
 										vscode.commands.executeCommand(selection.command);

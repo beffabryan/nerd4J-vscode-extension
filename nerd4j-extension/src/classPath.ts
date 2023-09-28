@@ -20,9 +20,12 @@ export async function getClassPath(): Promise<string | null> {
         if (!m2Path)
             return null;
 
+        // get separator based on the OS
+        const separator = process.platform === 'win32' ? ';' : ':';
+
         // build the classpath using the dependencies in the pom.xml file
         for (const dependencyPath of await getMavenDependenciesPath()) {
-            cpPath += join(m2Path, dependencyPath) + ';';
+            cpPath += join(m2Path, dependencyPath) + separator;
         }
     }
 
